@@ -10,8 +10,8 @@ import (
 
 	"github.com/kreon-core/shadow-cat-common/logc"
 
-	"sc-player-service/app"
 	"sc-player-service/i12e"
+	"sc-player-service/server"
 )
 
 const (
@@ -34,17 +34,17 @@ func main() {
 	appCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Initialize app
-	app, err := app.New(appCtx, cfg)
+	// Initialize server
+	server, err := server.New(appCtx, cfg)
 	if err != nil {
-		logc.Fatal("Failed to create app", err)
+		logc.Fatal("Failed to create server", err)
 	}
 
 	// Handle termination signal
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
-	go app.Start()
+	go server.Start()
 
 	// Wait for termination signal
 	<-stop
@@ -54,7 +54,7 @@ func main() {
 	shutdownCtx, shutdown := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer shutdown()
 
-	err = app.Stop(shutdownCtx)
+	err = server.Stop(shutdownCtx)
 	if err != nil {
 		logc.Fatal("Forced shutdown HTTP server failed", err)
 	}
