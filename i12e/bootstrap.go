@@ -25,7 +25,7 @@ func LoadEnvs(files ...string) {
 }
 
 func LoadConfigs(profile ...string) (*config.Config, error) {
-	var cfg *config.Config
+	cfg := &config.Config{}
 
 	v := viper.New()
 	v.AddConfigPath(configPath)
@@ -42,7 +42,7 @@ func LoadConfigs(profile ...string) (*config.Config, error) {
 	if err != nil {
 		logc.Warn("No configuration file found", "file", fmt.Sprintf("%s.%s", filename, configType), err)
 	} else {
-		logc.Info("Loaded configuration", "file", v.ConfigFileUsed())
+		logc.Info("Loaded configuration", "file", fmt.Sprintf("%s.%s", filename, configType))
 	}
 
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))

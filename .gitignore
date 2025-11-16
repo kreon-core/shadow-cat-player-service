@@ -10,3 +10,4 @@ __debug_*
 *.tmp.*
 
 .env
+build/

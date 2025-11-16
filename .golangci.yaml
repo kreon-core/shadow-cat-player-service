@@ -6,36 +6,26 @@ run:
 
 linters:
   enable:
-    - arangolint
     - asasalint
     - asciicheck
     - bidichk
     - bodyclose
     - canonicalheader
-    - containedctx
-    - contextcheck
     - copyloopvar
     - cyclop
-    - decorder
     - depguard
-    - dogsled
     - dupl
-    - dupword
     - durationcheck
     - embeddedstructfieldcheck
     - errcheck
-    - errchkjson
     - errname
     - errorlint
     - exhaustive
-    # - exhaustruct # [highly recommend to enable] checks if all structure fields are initialized
     - exptostd
     - fatcontext
     - forbidigo
-    - forcetypeassert
     - funcorder
     - funlen
-    - ginkgolinter
     - gocheckcompilerdirectives
     - gochecknoglobals
     - gochecknoinits
@@ -46,30 +36,17 @@ linters:
     - gocyclo
     - godoclint
     - godot
-    - godox
-    - err113
-    - goheader
     - gomoddirectives
-    - gomodguard
     - goprintffuncname
     - gosec
-    - gosmopolitan
     - govet
-    - grouper
     - iface
-    - importas
-    - inamedparam
     - ineffassign
-    - interfacebloat
     - intrange
     - iotamixing
-    - ireturn
-    - lll
     - loggercheck
-    - maintidx
     - makezero
     - mirror
-    - misspell
     - mnd
     - modernize
     - musttag
@@ -78,15 +55,11 @@ linters:
     - nilerr
     - nilnesserr
     - nilnil
-    - nlreturn
     - noctx
-    - noinlineerr
     - nolintlint
     - nonamedreturns
     - nosprintfhostport
-    - paralleltest
     - perfsprint
-    - prealloc
     - predeclared
     - promlinter
     - protogetter
@@ -97,24 +70,55 @@ linters:
     - sloglint
     - sqlclosecheck
     - staticcheck #~ gosimple + stylecheck merged into staticcheck
-    - tagalign
-    # - tagliatelle # checks the struct tags
     - testableexamples
     - testifylint
     - testpackage
-    - thelper
     - tparallel
     - unconvert
     - unparam
     - unused
     - usestdlibvars
     - usetesting
-    # - varnamelen # [great idea, but too many false positives] checks that the length of a variable's name matches its scope
     - wastedassign
     - whitespace
-    - wrapcheck
-    - wsl_v5 #~ WSl is deprecated (since v2.2.0), use wsl_v5 instead
-    - zerologlint
+    - zerologlint # detects the wrong usage of zerolog that a user forgets to dispatch zerolog.Event
+
+    ## you may want to enable
+    # - arangolint # opinionated best practices for arangodb client
+    # - decorder # checks declaration order and count of types, constants, variables and functions
+    # - exhaustruct # [highly recommend to enable] checks if all structure fields are initialized
+    # - ginkgolinter # [if you use ginkgo/gomega] enforces standards of using ginkgo and gomega
+    # - godox # detects usage of FIXME, TODO and other keywords inside comments
+    # - goheader # checks is file header matches to pattern
+    # - inamedparam # [great idea, but too strict, need to ignore a lot of cases by default] reports interfaces with unnamed method parameters
+    # - interfacebloat # checks the number of methods inside an interface
+    # - ireturn # accept interfaces, return concrete types
+    # - noinlineerr # disallows inline error handling `if err := ...; err != nil {`
+    # - prealloc # [premature optimization, but can be used in some cases] finds slice declarations that could potentially be preallocated
+    # - tagalign # checks that struct tags are well aligned
+    # - varnamelen # [great idea, but too many false positives] checks that the length of a variable's name matches its scope
+    # - wrapcheck # checks that errors returned from external packages are wrapped
+
+    # - containedctx # detects struct contained context.Context field
+    # - contextcheck # [too many false positives] checks the function whether use a non-inherited context
+    # - dogsled # checks assignments with too many blank identifiers (e.g. x, _, _, _, := f())
+    # - dupword # [useless without config] checks for duplicate words in the source code
+    # - err113 # [too strict] checks the errors handling expressions
+    # - errchkjson # [don't see profit + I'm against of omitting errors like in the first example https://github.com/breml/errchkjson] checks types passed to the json encoding functions. Reports unsupported types and optionally reports occasions, where the check for the returned error can be omitted
+    # - forcetypeassert # [replaced by errcheck] finds forced type assertions
+    # - gomodguard # [use more powerful depguard] allow and block lists linter for direct Go module dependencies
+    # - gosmopolitan # reports certain i18n/l10n anti-patterns in your Go codebase
+    # - grouper # analyzes expression groups
+    # - importas # enforces consistent import aliases
+    # - lll # [replaced by golines] reports long lines
+    # - maintidx # measures the maintainability index of each function
+    # - misspell # [useless] finds commonly misspelled English words in comments
+    # - nlreturn # [too strict and mostly code is not more readable] checks for a new line before return and branch statements to increase code clarity
+    # - paralleltest # [too many false positives] detects missing usage of t.Parallel() method in your Go test
+    # - tagliatelle # checks the struct tags
+    # - thelper # detects golang test helpers without t.Helper() call and checks the consistency of test helpers
+    # - wsl # [too strict and mostly code is not more readable] whitespace linter forces you to use empty lines
+    # - wsl_v5 # [too strict and mostly code is not more readable] add or remove empty lines
 
   settings:
     cyclop:

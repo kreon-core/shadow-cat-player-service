@@ -38,10 +38,11 @@ format:
 
 .PHONY: build
 build: generate
+	go build -o build/app .
 
 .PHONY: dev
 dev: build
-	go run .
+	./build/app -dev
 
 .PHONY: clean
 clean:

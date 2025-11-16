@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"sc-player-service/i12e/config"
 )
@@ -12,9 +13,9 @@ type Manager struct {
 	HTTPServer *HTTPServer
 }
 
-func New(ctx context.Context, cfg *config.Config) (*Manager, error) {
+func New(_ context.Context, cfg *config.Config) (*Manager, error) {
 	// container := NewContainer()
-	httpServer, err := NewHTTPServer(cfg)
+	httpServer, err := NewHTTPServer(&cfg.HTTP)
 	if err != nil {
 		return nil, fmt.Errorf("init_http_server -> %w", err)
 	}
@@ -25,7 +26,9 @@ func New(ctx context.Context, cfg *config.Config) (*Manager, error) {
 }
 
 func (a *Manager) Start() {
-	a.HTTPServer.Run()
+	var wg sync.WaitGroup
+	wg.Go(func() { a.HTTPServer.Run() })
+	wg.Wait()
 }
 
 func (a *Manager) Stop(ctx context.Context) error {
