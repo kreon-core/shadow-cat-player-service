@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"context"
@@ -11,7 +11,7 @@ type App struct {
 	HTTPServer *HTTPServer
 }
 
-func NewApp(ctx context.Context, cfg *config.Config) (*App, error) {
+func New(ctx context.Context, cfg *config.Config) (*App, error) {
 	httpServer, err := NewHTTPServer(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("init_http_server -> %w", err)

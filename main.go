@@ -10,6 +10,7 @@ import (
 
 	"github.com/kreon-core/shadow-cat-common/logc"
 
+	"sc-player-service/app"
 	"sc-player-service/i12e"
 )
 
@@ -34,7 +35,7 @@ func main() {
 	defer cancel()
 
 	// Initialize app
-	app, err := NewApp(appCtx, cfg)
+	app, err := app.New(appCtx, cfg)
 	if err != nil {
 		logc.Fatal("Failed to create app", err)
 	}
