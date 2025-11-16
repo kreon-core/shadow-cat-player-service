@@ -1,7 +1,13 @@
 package controller
 
-type PlayerH struct{}
+import "sc-player-service/service"
 
-func NewPlayerH() *PlayerH {
-	return &PlayerH{}
+type PlayerH struct {
+	PlayerSvc *service.Player
+}
+
+func NewPlayerH(playerSvc *service.Player) *PlayerH {
+	return &PlayerH{
+		PlayerSvc: playerSvc,
+	}
 }

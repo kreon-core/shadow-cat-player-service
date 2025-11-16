@@ -8,10 +8,12 @@ import (
 )
 
 type Manager struct {
+	Container  *Container
 	HTTPServer *HTTPServer
 }
 
 func New(ctx context.Context, cfg *config.Config) (*Manager, error) {
+	// container := NewContainer()
 	httpServer, err := NewHTTPServer(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("init_http_server -> %w", err)
