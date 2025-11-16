@@ -98,7 +98,7 @@ linters:
     - sqlclosecheck
     - staticcheck #~ gosimple + stylecheck merged into staticcheck
     - tagalign
-    - tagliatelle
+    # - tagliatelle # checks the struct tags
     - testableexamples
     - testifylint
     - testpackage
