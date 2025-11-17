@@ -20,8 +20,12 @@ const (
 )
 
 func LoadEnvs(files ...string) {
-	_ = godotenv.Load()
-	_ = godotenv.Load(files...)
+	err := godotenv.Load(files...)
+	if err != nil {
+		logc.Warn().Strs("files", files).AnErr("warn", err).Msg("No .env files found, skipping...")
+	} else {
+		logc.Info().Strs("files", files).Msg(".env files loaded successfully")
+	}
 }
 
 func LoadConfigs(profile ...string) (*config.Config, error) {
@@ -40,12 +44,10 @@ func LoadConfigs(profile ...string) (*config.Config, error) {
 
 	err := v.MergeInConfig()
 	if err != nil {
-		logc.Warn().
-			Str("file", fmt.Sprintf("%s.%s", filename, configType)).
-			Err(err).Msg("No configuration file found")
+		logc.Warn().Str("file", fmt.Sprintf("%s.%s", filename, configType)).
+			AnErr("warn", err).Msg("No configuration file found")
 	} else {
-		logc.Info().
-			Str("file", fmt.Sprintf("%s.%s", filename, configType)).
+		logc.Info().Str("file", fmt.Sprintf("%s.%s", filename, configType)).
 			Msg("Configuration file loaded")
 	}
 

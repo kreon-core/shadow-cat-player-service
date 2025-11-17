@@ -24,11 +24,11 @@ func main() {
 	// Initialize global logger
 	logc.InitializeLogger()
 
-	// Load application configuration
+	// Load configuration
+	i12e.LoadEnvs()
 	cfg, err := i12e.LoadConfigs()
 	if err != nil {
-		logc.Fatal().Err(err).
-			Msg("Failed to load configuration")
+		logc.Fatal().Err(err).Msg("Failed to load configuration")
 	}
 
 	// Create server context
@@ -38,8 +38,7 @@ func main() {
 	// Initialize server
 	server, err := server.New(appCtx, cfg)
 	if err != nil {
-		logc.Fatal().Err(err).
-			Msg("Failed to create server")
+		logc.Fatal().Err(err).Msg("Failed to create server")
 	}
 
 	// Handle termination signal
@@ -58,8 +57,7 @@ func main() {
 
 	err = server.Stop(shutdownCtx)
 	if err != nil {
-		logc.Fatal().Err(err).
-			Msg("Forced shutdown HTTP server failed")
+		logc.Fatal().Err(err).Msg("Forced shutdown HTTP server failed")
 	}
 
 	logc.Info().Msg("Exiting application gracefully")
@@ -67,7 +65,7 @@ func main() {
 
 func exit() {
 	if r := recover(); r != nil {
-		fmt.Fprintf(os.Stderr, "application panicked: %+v\n", r)
+		fmt.Fprintf(os.Stderr, "Application panicked: %+v\n", r)
 		os.Exit(1)
 	}
 }

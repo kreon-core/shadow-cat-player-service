@@ -58,27 +58,20 @@ func NewHTTPServer(cfg *config.HTTP) (*HTTPServer, error) {
 }
 
 func (s *HTTPServer) Run() {
-	logc.Info().
-		Str("address", s.Addr).
-		Msg("HTTP server is listening and serving")
+	logc.Info().Str("address", s.Addr).Msg("HTTP server is listening and serving")
 	err := s.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		logc.Fatal().
-			Err(err).
-			Msg("HTTP server failed to start")
+		logc.Fatal().Err(err).Msg("HTTP server failed to start")
 	}
 }
 
 func (s *HTTPServer) Stop(ctx context.Context) error {
 	err := s.Shutdown(ctx)
 	if err != nil {
-		logc.Error().
-			Err(err).
-			Msg("HTTP server shutdown failed")
+		logc.Error().Err(err).Msg("HTTP server shutdown failed")
 		return err
 	}
 
-	logc.Info().
-		Msg("HTTP server stopped gracefully")
+	logc.Info().Msg("HTTP server stopped gracefully")
 	return nil
 }
