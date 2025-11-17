@@ -20,6 +20,7 @@ install:
 
 .PHONY: generate
 generate:
+	sqlc generate -f i12e/database/postgres/sqlc.yaml
 # 	swag init -g http.go -o docs/swagger
 
 .PHONY: lint
