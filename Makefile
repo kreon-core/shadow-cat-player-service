@@ -4,6 +4,7 @@ MODULE = sc-player-service
 dev-setup:
 	go install github.com/go-delve/delve/cmd/dlv@latest							# for debugging
 	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest							# for generating type-safe database code
+	go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest			# for database migrations
 # 	go install github.com/swaggo/swag/cmd/swag@latest							# for generating swagger docs
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest	# for linting and formatting
 	go install golang.org/x/tools/cmd/goimports@latest							# for formatting imports
@@ -12,7 +13,7 @@ dev-setup:
 	go install github.com/segmentio/golines@latest								# for formatting long lines
 
 .PHONY: pre-commit
-pre-commit: install generate format lint clean
+pre-commit: install generate format lint tidy
 
 # ============================================================================================================
 
@@ -55,3 +56,19 @@ tidy:
 clean:
 	go clean -cache -testcache -modcache
 	rm -rf build
+
+# ============================================================================================================
+
+PLAYER_DB_DSN = postgres://postgres:password@localhost:5432/scs_player?sslmode=disable
+
+.PHONY: migrate-player-create
+migrate-player-create:
+	migrate create -ext sql -dir infrastructure/database/player/migrations -seq $(name)
+
+.PHONY: migrate-player-up
+migrate-player-up:
+	migrate -path infrastructure/database/player/migrations -database "$(PLAYER_DB_DSN)" up
+
+.PHONY: migrate-player-down
+migrate-player-down:
+	migrate -path infrastructure/database/player/migrations -database "$(PLAYER_DB_DSN)" down

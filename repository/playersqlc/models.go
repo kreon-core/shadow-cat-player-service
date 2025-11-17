@@ -8,16 +8,74 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Session struct {
-	ID        int64              `json:"id"`
-	UserID    int64              `json:"user_id"`
-	Token     string             `json:"token"`
-	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+type Chapter struct {
+	PlayerID           pgtype.UUID        `db:"player_id" json:"player_id"`
+	ChapterID          int32              `db:"chapter_id" json:"chapter_id"`
+	CheckedCheckpoints []byte             `db:"checked_checkpoints" json:"checked_checkpoints"`
+	CreatedAt          pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
 }
 
-type User struct {
-	ID        int64              `json:"id"`
-	Username  string             `json:"username"`
-	Email     string             `json:"email"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+type DailyShop struct {
+	ID             pgtype.UUID        `db:"id" json:"id"`
+	PlayerID       pgtype.UUID        `db:"player_id" json:"player_id"`
+	PurchasedItems []byte             `db:"purchased_items" json:"purchased_items"`
+	CreatedAt      pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+}
+
+type DailySign struct {
+	ID        pgtype.UUID        `db:"id" json:"id"`
+	PlayerID  pgtype.UUID        `db:"player_id" json:"player_id"`
+	WeekNo    int32              `db:"week_no" json:"week_no"`
+	SignIns   []byte             `db:"sign_ins" json:"sign_ins"`
+	CreatedAt pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+}
+
+type DailyTask struct {
+	ID           pgtype.UUID        `db:"id" json:"id"`
+	PlayerID     pgtype.UUID        `db:"player_id" json:"player_id"`
+	TaskID       int32              `db:"task_id" json:"task_id"`
+	Progress     int32              `db:"progress" json:"progress"`
+	Claimed      bool               `db:"claimed" json:"claimed"`
+	PointsEarned int32              `db:"points_earned" json:"points_earned"`
+	CreatedAt    pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+}
+
+type Player struct {
+	ID            pgtype.UUID        `db:"id" json:"id"`
+	Level         int32              `db:"level" json:"level"`
+	Xp            int32              `db:"xp" json:"xp"`
+	Coins         int32              `db:"coins" json:"coins"`
+	Gems          int32              `db:"gems" json:"gems"`
+	CurrentEnergy int32              `db:"current_energy" json:"current_energy"`
+	MaxEnergy     int32              `db:"max_energy" json:"max_energy"`
+	NextEnergyAt  pgtype.Timestamptz `db:"next_energy_at" json:"next_energy_at"`
+	BestMap       []byte             `db:"best_map" json:"best_map"`
+	CurrentSkin   int32              `db:"current_skin" json:"current_skin"`
+	EquippedProps []byte             `db:"equipped_props" json:"equipped_props"`
+	OwnedSkins    []byte             `db:"owned_skins" json:"owned_skins"`
+	CreatedAt     pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+}
+
+type Prop struct {
+	ID           pgtype.UUID        `db:"id" json:"id"`
+	PlayerID     pgtype.UUID        `db:"player_id" json:"player_id"`
+	ConfigPropID int32              `db:"config_prop_id" json:"config_prop_id"`
+	Level        int32              `db:"level" json:"level"`
+	Quantity     int32              `db:"quantity" json:"quantity"`
+	CreatedAt    pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+}
+
+type Tower struct {
+	PlayerID     pgtype.UUID        `db:"player_id" json:"player_id"`
+	TowerID      int32              `db:"tower_id" json:"tower_id"`
+	Ticket       int32              `db:"ticket" json:"ticket"`
+	HighestFloor int32              `db:"highest_floor" json:"highest_floor"`
+	CreatedAt    pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
 }

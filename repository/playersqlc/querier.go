@@ -9,10 +9,9 @@ import (
 )
 
 type Querier interface {
-	CreateUser(ctx context.Context, email string) (User, error)
-	DeleteUser(ctx context.Context, id int64) error
-	GetUser(ctx context.Context, id int64) (User, error)
-	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
+	// dummy query to make sqlc happy
+	// you can remove this later
+	dummyQuery(ctx context.Context) (int32, error)
 }
 
 var _ Querier = (*Queries)(nil)
