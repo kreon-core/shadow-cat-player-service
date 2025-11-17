@@ -59,7 +59,7 @@ clean:
 
 # ============================================================================================================
 
-PLAYER_DB_DSN = postgres://postgres:password@localhost:5432/scs_player?sslmode=disable
+PLAYER_DB_DSN = postgres://postgres:password@10.176.112.178:5432/scs_player?sslmode=disable
 
 .PHONY: migrate-player-create
 migrate-player-create:
