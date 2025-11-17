@@ -6,12 +6,13 @@ package playersqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
-	// dummy query to make sqlc happy
-	// you can remove this later
-	dummyQuery(ctx context.Context) (int32, error)
+	CreatePlayer(ctx context.Context, arg CreatePlayerParams) (CreatePlayerRow, error)
+	GetPlayerByID(ctx context.Context, id pgtype.UUID) (GetPlayerByIDRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

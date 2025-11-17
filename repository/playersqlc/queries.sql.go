@@ -7,17 +7,114 @@ package playersqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const dummyQuery = `-- name: dummyQuery :one
-SELECT 1
+const createPlayer = `-- name: CreatePlayer :one
+INSERT INTO player (
+    id,
+    coins,
+    gems,
+    current_energy,
+    max_energy,
+    best_map
+) VALUES (
+    $1, -- id UUID
+    $2, -- coins INT
+    $3, -- gems INT
+    $4, -- current_energy INT
+    $5, -- max_energy INT
+    $6 -- best_map JSONB
+)
+RETURNING
+    id,
+    coins,
+    gems,
+    current_energy,
+    max_energy,
+    next_energy_at,
+    best_map
 `
 
-// dummy query to make sqlc happy
-// you can remove this later
-func (q *Queries) dummyQuery(ctx context.Context) (int32, error) {
-	row := q.db.QueryRow(ctx, dummyQuery)
-	var column_1 int32
-	err := row.Scan(&column_1)
-	return column_1, err
+type CreatePlayerParams struct {
+	ID            pgtype.UUID `db:"id" json:"id"`
+	Coins         int32       `db:"coins" json:"coins"`
+	Gems          int32       `db:"gems" json:"gems"`
+	CurrentEnergy int32       `db:"current_energy" json:"current_energy"`
+	MaxEnergy     int32       `db:"max_energy" json:"max_energy"`
+	BestMap       []byte      `db:"best_map" json:"best_map"`
+}
+
+type CreatePlayerRow struct {
+	ID            pgtype.UUID        `db:"id" json:"id"`
+	Coins         int32              `db:"coins" json:"coins"`
+	Gems          int32              `db:"gems" json:"gems"`
+	CurrentEnergy int32              `db:"current_energy" json:"current_energy"`
+	MaxEnergy     int32              `db:"max_energy" json:"max_energy"`
+	NextEnergyAt  pgtype.Timestamptz `db:"next_energy_at" json:"next_energy_at"`
+	BestMap       []byte             `db:"best_map" json:"best_map"`
+}
+
+func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (CreatePlayerRow, error) {
+	row := q.db.QueryRow(ctx, createPlayer,
+		arg.ID,
+		arg.Coins,
+		arg.Gems,
+		arg.CurrentEnergy,
+		arg.MaxEnergy,
+		arg.BestMap,
+	)
+	var i CreatePlayerRow
+	err := row.Scan(
+		&i.ID,
+		&i.Coins,
+		&i.Gems,
+		&i.CurrentEnergy,
+		&i.MaxEnergy,
+		&i.NextEnergyAt,
+		&i.BestMap,
+	)
+	return i, err
+}
+
+const getPlayerByID = `-- name: GetPlayerByID :one
+SELECT
+    id,
+    level,
+    exp,
+    coins,
+    gems,
+    best_map,
+    current_skin,
+    equipped_props
+FROM player
+WHERE id = $1
+`
+
+type GetPlayerByIDRow struct {
+	ID            pgtype.UUID `db:"id" json:"id"`
+	Level         int32       `db:"level" json:"level"`
+	Exp           int32       `db:"exp" json:"exp"`
+	Coins         int32       `db:"coins" json:"coins"`
+	Gems          int32       `db:"gems" json:"gems"`
+	BestMap       []byte      `db:"best_map" json:"best_map"`
+	CurrentSkin   int32       `db:"current_skin" json:"current_skin"`
+	EquippedProps []byte      `db:"equipped_props" json:"equipped_props"`
+}
+
+func (q *Queries) GetPlayerByID(ctx context.Context, id pgtype.UUID) (GetPlayerByIDRow, error) {
+	row := q.db.QueryRow(ctx, getPlayerByID, id)
+	var i GetPlayerByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Level,
+		&i.Exp,
+		&i.Coins,
+		&i.Gems,
+		&i.BestMap,
+		&i.CurrentSkin,
+		&i.EquippedProps,
+	)
+	return i, err
 }

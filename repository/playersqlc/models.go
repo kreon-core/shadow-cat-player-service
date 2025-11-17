@@ -47,7 +47,7 @@ type DailyTask struct {
 type Player struct {
 	ID            pgtype.UUID        `db:"id" json:"id"`
 	Level         int32              `db:"level" json:"level"`
-	Xp            int32              `db:"xp" json:"xp"`
+	Exp           int32              `db:"exp" json:"exp"`
 	Coins         int32              `db:"coins" json:"coins"`
 	Gems          int32              `db:"gems" json:"gems"`
 	CurrentEnergy int32              `db:"current_energy" json:"current_energy"`
