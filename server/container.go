@@ -10,13 +10,10 @@ import (
 )
 
 type Container struct {
-	PlayerSvc *service.Player
-
-	PlayerRepo *repository.Player
-
+	PlayerSvc   *service.Player
+	PlayerRepo  *repository.Player
 	PlayerHCtrl *controller.PlayerH
-
-	AuthMW *temp.Auth
+	AuthMW      *temp.Auth
 }
 
 func NewContainer(
@@ -24,11 +21,8 @@ func NewContainer(
 	playerDBQueries *playersqlc.Queries,
 ) *Container {
 	playerRepo := repository.NewPlayer(playerDBQueries)
-
 	playerSvc := service.NewPlayer(playerRepo)
-
 	playerHCtrl := controller.NewPlayerH(playerSvc)
-
 	authMW := temp.NewAuthMiddleware(&cfg.Secrets)
 
 	return &Container{
