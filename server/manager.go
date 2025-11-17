@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+
 	"sc-player-service/i12e/config"
 )
 
 type Manager struct {
 	Container  *Container
 	HTTPServer *HTTPServer
+	PlayerDB   *pgxpool.Pool
 }
 
 func New(_ context.Context, cfg *config.Config) (*Manager, error) {
