@@ -1,4 +1,4 @@
-package response
+package dto
 
 type PlayerInventory struct {
 	Skins []int  `json:"skins"`

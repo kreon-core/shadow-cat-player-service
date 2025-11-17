@@ -2,15 +2,15 @@ MODULE = sc-player-service
 
 .PHONY: dev-setup
 dev-setup:
-	go install github.com/go-delve/delve/cmd/dlv@latest							# for debugging
-	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest							# for generating type-safe database code
-	go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest			# for database migrations
-# 	go install github.com/swaggo/swag/cmd/swag@latest							# for generating swagger docs
-	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest	# for linting and formatting
-	go install golang.org/x/tools/cmd/goimports@latest							# for formatting imports
-	go install github.com/daixiang0/gci@latest									# for organizing imports
-	go install mvdan.cc/gofumpt@latest											# for formatting code
-	go install github.com/segmentio/golines@latest								# for formatting long lines
+	go install github.com/go-delve/delve/cmd/dlv@latest									# for debugging
+	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest									# for generating type-safe database code
+	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest	# for database migrations
+# 	go install github.com/swaggo/swag/cmd/swag@latest									# for generating swagger docs
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest			# for linting and formatting
+	go install golang.org/x/tools/cmd/goimports@latest									# for formatting imports
+	go install github.com/daixiang0/gci@latest											# for organizing imports
+	go install mvdan.cc/gofumpt@latest													# for formatting code
+	go install github.com/segmentio/golines@latest										# for formatting long lines
 
 .PHONY: pre-commit
 pre-commit: install generate format lint tidy

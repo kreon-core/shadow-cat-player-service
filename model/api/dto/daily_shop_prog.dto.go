@@ -1,4 +1,4 @@
-package response
+package dto
 
 type DailyShopProgress struct {
 	PurchasedItems []PurchasedItem `json:"purchased_items"`

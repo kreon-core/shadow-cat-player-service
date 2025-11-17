@@ -1,4 +1,4 @@
-package response
+package dto
 
 type ChapterProgress struct {
 	Chapters []Chapter `json:"chapters"`

@@ -43,7 +43,7 @@ func New(ctx context.Context, cfg *config.Config) (*Manager, error) {
 
 	// Workers ...
 
-	container := NewContainer(playerDBQueries)
+	container := NewContainer(cfg, playerDBQueries)
 	httpServer := NewHTTPServer(&cfg.HTTP, container)
 
 	return &Manager{

@@ -1,4 +1,4 @@
-package response
+package dto
 
 type PlayerEnergy struct {
 	CurrentEnergy int   `json:"current_energy"`

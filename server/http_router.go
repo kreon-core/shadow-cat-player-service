@@ -4,6 +4,7 @@ import "github.com/go-chi/chi/v5"
 
 func LoadRoutes(container *Container) func(r chi.Router) {
 	return func(r chi.Router) {
+		r.Use(container.AuthMW.Handle)
 		r.Route("/player", func(r chi.Router) {
 			r.Get("/", container.PlayerHCtrl.Get)
 			r.Put("/", container.PlayerHCtrl.Update)

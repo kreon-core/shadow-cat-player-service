@@ -1,4 +1,4 @@
-package response
+package dto
 
 type Player struct {
 	PlayerID string `json:"player_id"`

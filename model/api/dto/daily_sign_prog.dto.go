@@ -1,4 +1,4 @@
-package response
+package dto
 
 type DailySignProgress struct {
 	WeekNo     int         `json:"week_no"`
