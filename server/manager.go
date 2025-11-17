@@ -9,7 +9,7 @@ import (
 	"github.com/kreon-core/shadow-cat-common/logc"
 	"github.com/kreon-core/shadow-cat-common/postgres"
 
-	"sc-player-service/i12e/config"
+	"sc-player-service/infrastructure/config"
 	"sc-player-service/repository/pgsqlc"
 )
 

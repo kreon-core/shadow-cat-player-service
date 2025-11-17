@@ -1,4 +1,4 @@
-package i12e
+package infrastructure
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"github.com/kreon-core/shadow-cat-common/logc"
 	"github.com/spf13/viper"
 
-	"sc-player-service/i12e/config"
+	"sc-player-service/infrastructure/config"
 )
 
 const (

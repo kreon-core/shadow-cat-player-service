@@ -10,7 +10,7 @@ import (
 
 	"github.com/kreon-core/shadow-cat-common/logc"
 
-	"sc-player-service/i12e"
+	"sc-player-service/infrastructure"
 	"sc-player-service/server"
 )
 
@@ -25,8 +25,8 @@ func main() {
 	logc.InitializeLogger()
 
 	// Load configuration
-	i12e.LoadEnvs()
-	cfg, err := i12e.LoadConfigs()
+	infrastructure.LoadEnvs()
+	cfg, err := infrastructure.LoadConfigs()
 	if err != nil {
 		logc.Fatal().Err(err).Msg("Failed to load configuration")
 	}

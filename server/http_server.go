@@ -12,7 +12,7 @@ import (
 	tul "github.com/kreon-core/shadow-cat-common"
 	"github.com/kreon-core/shadow-cat-common/logc"
 
-	"sc-player-service/i12e/config"
+	"sc-player-service/infrastructure/config"
 	"sc-player-service/middleware"
 )
 
