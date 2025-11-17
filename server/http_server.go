@@ -9,18 +9,16 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chiMW "github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors"
 	tul "github.com/kreon-core/shadow-cat-common"
 	"github.com/kreon-core/shadow-cat-common/logc"
 
-	"sc-player-service/helper"
 	"sc-player-service/infrastructure/config"
 	"sc-player-service/middleware"
 )
 
 const (
 	srvHost              = ""
-	srvPost              = 8080
+	srvPort              = 8080
 	srvReadTimeout       = 15 * time.Second
 	srvReadHeaderTimeout = 15 * time.Second
 	srvWriteTimeout      = 15 * time.Second
@@ -35,7 +33,7 @@ type HTTPServer struct {
 func NewHTTPServer(cfg *config.HTTP, container *Container) *HTTPServer {
 	r := chi.NewRouter()
 
-	useCORS(r)
+	r.Use(tul.CORS(nil))
 
 	r.Use(chiMW.Recoverer)
 
@@ -44,16 +42,19 @@ func NewHTTPServer(cfg *config.HTTP, container *Container) *HTTPServer {
 
 	r.Use(chiMW.RealIP)
 	r.Use(chiMW.RequestID)
+
 	r.Use(middleware.RequestLogger)
 
 	r.Use(chiMW.Timeout(srvGatewayTimeout))
 
-	r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) { helper.PlainText(w, http.StatusOK, "healthy") })
+	r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+		tul.PlainText(w, http.StatusOK, "healthy")
+	})
 
 	r.Route("/api/v1", LoadRoutes(container))
 
 	host := tul.OrElse(cfg.Host, srvHost)
-	port := tul.OrElse(cfg.Port, srvPost)
+	port := tul.OrElse(cfg.Port, srvPort)
 
 	return &HTTPServer{
 		Server: &http.Server{
@@ -65,26 +66,6 @@ func NewHTTPServer(cfg *config.HTTP, container *Container) *HTTPServer {
 			IdleTimeout:       tul.OrElse(cfg.IdleTimeout, srvIdleTimeout),
 		},
 	}
-}
-
-func useCORS(r chi.Router) {
-	r.Use(cors.Handler(cors.Options{
-		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"https://*", "http://*"},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-		AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders: []string{
-			"Origin",
-			"Accept",
-			"Content-Type",
-			"Authorization",
-			"X-Real-IP",
-			"X-Request-ID",
-		},
-		ExposedHeaders:   []string{"Content-Length"},
-		AllowCredentials: false,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
-	}))
 }
 
 func (s *HTTPServer) Run() {

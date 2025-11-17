@@ -3,7 +3,7 @@ package config
 import (
 	"time"
 
-	"github.com/kreon-core/shadow-cat-common/postgres"
+	tul "github.com/kreon-core/shadow-cat-common"
 )
 
 type Config struct {
@@ -22,7 +22,7 @@ type HTTP struct {
 }
 
 type DB struct {
-	Player postgres.Config `mapstructure:"player" validate:"required"`
+	Player tul.PostgresConfig `mapstructure:"player" validate:"required"`
 }
 
 type Secrets struct {
