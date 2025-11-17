@@ -1,7 +1,11 @@
 package repository
 
-type Player struct{}
+import "sc-player-service/repository/pgsqlc"
 
-func NewPlayer() *Player {
-	return &Player{}
+type Player struct {
+	q *pgsqlc.Queries
+}
+
+func NewPlayer(q *pgsqlc.Queries) *Player {
+	return &Player{q: q}
 }

@@ -12,11 +12,12 @@ type Config struct {
 }
 
 type HTTP struct {
-	Host         *string        `mapstructure:"host"`
-	Port         *int           `mapstructure:"port"`
-	ReadTimeout  *time.Duration `mapstructure:"read_timeout"`
-	WriteTimeout *time.Duration `mapstructure:"write_timeout"`
-	IdleTimeout  *time.Duration `mapstructure:"idle_timeout"`
+	Host              *string        `mapstructure:"host"`
+	Port              *int           `mapstructure:"port"`
+	ReadTimeout       *time.Duration `mapstructure:"read_timeout"`
+	ReadHeaderTimeout *time.Duration `mapstructure:"read_header_timeout"`
+	WriteTimeout      *time.Duration `mapstructure:"write_timeout"`
+	IdleTimeout       *time.Duration `mapstructure:"idle_timeout"`
 }
 
 type DB struct {

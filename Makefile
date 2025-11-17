@@ -47,8 +47,11 @@ build: generate
 dev: build
 	./build/app -dev
 
+.PHONY: tidy
+tidy:
+	go mod tidy
+
 .PHONY: clean
 clean:
-	go mod tidy
 	go clean -cache -testcache -modcache
 	rm -rf build

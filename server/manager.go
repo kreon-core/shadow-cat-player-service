@@ -6,31 +6,58 @@ import (
 	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/kreon-core/shadow-cat-common/logc"
+	"github.com/kreon-core/shadow-cat-common/postgres"
 
 	"sc-player-service/i12e/config"
+	"sc-player-service/repository/pgsqlc"
 )
 
 type Manager struct {
-	Container  *Container
 	HTTPServer *HTTPServer
-	PlayerDB   *pgxpool.Pool
+	Container  *Container
+
+	PlayerDBPool    *pgxpool.Pool
+	PlayerDBQueries *pgsqlc.Queries
+
+	// RedisClient *redis.Client
+
+	// KafkaConsumer *kafka.Consumer
+	// KafkaProducer *kafka.Producer
+
+	// Workers ...
 }
 
-func New(_ context.Context, cfg *config.Config) (*Manager, error) {
-	// container := NewContainer()
-	httpServer, err := NewHTTPServer(&cfg.HTTP)
+func New(ctx context.Context, cfg *config.Config) (*Manager, error) {
+	playerDBPool, err := postgres.NewConnection(ctx, &cfg.DB.Player)
 	if err != nil {
-		return nil, fmt.Errorf("init_http_server -> %w", err)
+		return nil, fmt.Errorf("init_player_db -> %w", err)
 	}
+	logc.Info().Str("db", "player").Msg("DB connection pool established")
+
+	playerDBQueries := pgsqlc.New(playerDBPool)
+
+	// Redis
+	// KafkaProducer
+	// KafkaConsumer
+
+	// Workers ...
+
+	container := NewContainer(playerDBQueries)
+	httpServer := NewHTTPServer(&cfg.HTTP, container)
 
 	return &Manager{
-		HTTPServer: httpServer,
+		HTTPServer:      httpServer,
+		Container:       container,
+		PlayerDBPool:    playerDBPool,
+		PlayerDBQueries: playerDBQueries,
 	}, nil
 }
 
 func (a *Manager) Start() {
 	var wg sync.WaitGroup
 	wg.Go(func() { a.HTTPServer.Run() })
+	// Workers
 	wg.Wait()
 }
 
@@ -38,6 +65,15 @@ func (a *Manager) Stop(ctx context.Context) error {
 	err := a.HTTPServer.Stop(ctx)
 	if err != nil {
 		return fmt.Errorf("stop_http_server -> %w", err)
+	}
+
+	// Workers
+	// Kafka Consumer
+	// Kafka Producer
+	// Redis
+
+	if a.PlayerDBPool != nil {
+		a.PlayerDBPool.Close()
 	}
 
 	return nil

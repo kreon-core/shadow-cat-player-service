@@ -17,19 +17,20 @@ import (
 )
 
 const (
-	srvHost           = ""
-	srvPost           = 8080
-	srvReadTimeout    = 15 * time.Second
-	srvWriteTimeout   = 15 * time.Second
-	srvIdleTimeout    = 120 * time.Second
-	srvGatewayTimeout = 60 * time.Second
+	srvHost              = ""
+	srvPost              = 8080
+	srvReadTimeout       = 15 * time.Second
+	srvReadHeaderTimeout = 15 * time.Second
+	srvWriteTimeout      = 15 * time.Second
+	srvIdleTimeout       = 120 * time.Second
+	srvGatewayTimeout    = 60 * time.Second
 )
 
 type HTTPServer struct {
 	*http.Server
 }
 
-func NewHTTPServer(cfg *config.HTTP) (*HTTPServer, error) {
+func NewHTTPServer(cfg *config.HTTP, container *Container) *HTTPServer {
 	r := chi.NewRouter()
 
 	r.Use(chiMW.RealIP)
@@ -43,18 +44,21 @@ func NewHTTPServer(cfg *config.HTTP) (*HTTPServer, error) {
 		_, _ = w.Write([]byte("ok"))
 	})
 
+	r.Route("/api/v1", LoadRoutes(container))
+
 	host := tul.OrElse(cfg.Host, srvHost)
 	port := tul.OrElse(cfg.Port, srvPost)
 
 	return &HTTPServer{
 		Server: &http.Server{
-			Addr:         fmt.Sprintf("%s:%d", host, port),
-			Handler:      r,
-			ReadTimeout:  tul.OrElse(cfg.ReadTimeout, srvReadTimeout),
-			WriteTimeout: tul.OrElse(cfg.WriteTimeout, srvWriteTimeout),
-			IdleTimeout:  tul.OrElse(cfg.IdleTimeout, srvIdleTimeout),
+			Addr:              fmt.Sprintf("%s:%d", host, port),
+			Handler:           r,
+			ReadTimeout:       tul.OrElse(cfg.ReadTimeout, srvReadTimeout),
+			ReadHeaderTimeout: tul.OrElse(cfg.ReadHeaderTimeout, srvReadHeaderTimeout),
+			WriteTimeout:      tul.OrElse(cfg.WriteTimeout, srvWriteTimeout),
+			IdleTimeout:       tul.OrElse(cfg.IdleTimeout, srvIdleTimeout),
 		},
-	}, nil
+	}
 }
 
 func (s *HTTPServer) Run() {

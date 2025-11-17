@@ -3,6 +3,7 @@ package server
 import (
 	"sc-player-service/controller"
 	"sc-player-service/repository"
+	"sc-player-service/repository/pgsqlc"
 	"sc-player-service/service"
 )
 
@@ -14,8 +15,10 @@ type Container struct {
 	PlayerHCtrl *controller.PlayerH
 }
 
-func NewContainer() *Container {
-	playerRepo := repository.NewPlayer()
+func NewContainer(
+	playerDBQueries *pgsqlc.Queries,
+) *Container {
+	playerRepo := repository.NewPlayer(playerDBQueries)
 
 	playerSvc := service.NewPlayer(playerRepo)
 
