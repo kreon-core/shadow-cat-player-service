@@ -40,9 +40,13 @@ func LoadConfigs(profile ...string) (*config.Config, error) {
 
 	err := v.MergeInConfig()
 	if err != nil {
-		logc.Warn("No configuration file found", "file", fmt.Sprintf("%s.%s", filename, configType), err)
+		logc.Warn().
+			Str("file", fmt.Sprintf("%s.%s", filename, configType)).
+			Err(err).Msg("No configuration file found")
 	} else {
-		logc.Info("Loaded configuration", "file", fmt.Sprintf("%s.%s", filename, configType))
+		logc.Info().
+			Str("file", fmt.Sprintf("%s.%s", filename, configType)).
+			Msg("Configuration file loaded")
 	}
 
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
@@ -54,7 +58,6 @@ func LoadConfigs(profile ...string) (*config.Config, error) {
 	}
 
 	va := validator.New()
-
 	err = va.Struct(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("validate_config -> %w", err)
@@ -62,3 +65,5 @@ func LoadConfigs(profile ...string) (*config.Config, error) {
 
 	return cfg, nil
 }
+
+// TODO: auto reload configs when the config file changes

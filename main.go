@@ -27,7 +27,8 @@ func main() {
 	// Load application configuration
 	cfg, err := i12e.LoadConfigs()
 	if err != nil {
-		logc.Fatal("Failed to load configuration", err)
+		logc.Fatal().Err(err).
+			Msg("Failed to load configuration")
 	}
 
 	// Create server context
@@ -37,7 +38,8 @@ func main() {
 	// Initialize server
 	server, err := server.New(appCtx, cfg)
 	if err != nil {
-		logc.Fatal("Failed to create server", err)
+		logc.Fatal().Err(err).
+			Msg("Failed to create server")
 	}
 
 	// Handle termination signal
@@ -48,7 +50,7 @@ func main() {
 
 	// Wait for termination signal
 	<-stop
-	logc.Info("Shutting down application...")
+	logc.Info().Msg("Shutting down application...")
 
 	// Graceful shutdown
 	shutdownCtx, shutdown := context.WithTimeout(context.Background(), shutdownTimeout)
@@ -56,10 +58,11 @@ func main() {
 
 	err = server.Stop(shutdownCtx)
 	if err != nil {
-		logc.Fatal("Forced shutdown HTTP server failed", err)
+		logc.Fatal().Err(err).
+			Msg("Forced shutdown HTTP server failed")
 	}
 
-	logc.Info("Exiting application gracefully")
+	logc.Info().Msg("Exiting application gracefully")
 }
 
 func exit() {

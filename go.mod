@@ -6,7 +6,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/joho/godotenv v1.5.1
-	github.com/kreon-core/shadow-cat-common v0.0.12
+	github.com/kreon-core/shadow-cat-common v0.0.16
 	github.com/spf13/viper v1.21.0
 )
 
