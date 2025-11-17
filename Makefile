@@ -5,7 +5,6 @@ dev-setup:
 	go install github.com/go-delve/delve/cmd/dlv@latest									# for debugging
 	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest									# for generating type-safe database code
 	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest	# for database migrations
-# 	go install github.com/swaggo/swag/cmd/swag@latest									# for generating swagger docs
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest			# for linting and formatting
 	go install golang.org/x/tools/cmd/goimports@latest									# for formatting imports
 	go install github.com/daixiang0/gci@latest											# for organizing imports
@@ -24,7 +23,6 @@ install:
 .PHONY: generate
 generate:
 	sqlc generate -f infrastructure/database/player/sqlc.yaml
-# 	swag init -g http.go -o docs/swagger
 
 .PHONY: lint
 lint:
@@ -59,7 +57,10 @@ clean:
 
 # ============================================================================================================
 
-PLAYER_DB_DSN = postgres://postgres:password@10.176.112.178:5432/scs_player?sslmode=disable
+DB = scs_player
+DB_AUTH = postgres:password
+DB_ADDR = 10.176.112.178:5432
+DB_DSN = postgres://$(DB_AUTH)@$(DB_ADDR)/$(DB)?sslmode=disable
 
 .PHONY: migrate-player-create
 migrate-player-create:
@@ -67,8 +68,8 @@ migrate-player-create:
 
 .PHONY: migrate-player-up
 migrate-player-up:
-	migrate -path infrastructure/database/player/migrations -database "$(PLAYER_DB_DSN)" up
+	migrate -path infrastructure/database/player/migrations -database "$(DB_DSN)" up
 
 .PHONY: migrate-player-down
 migrate-player-down:
-	migrate -path infrastructure/database/player/migrations -database "$(PLAYER_DB_DSN)" down
+	migrate -path infrastructure/database/player/migrations -database "$(DB_DSN)" down
