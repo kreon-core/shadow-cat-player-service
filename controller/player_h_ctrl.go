@@ -6,6 +6,7 @@ import (
 
 	tul "github.com/kreon-core/shadow-cat-common"
 
+	"sc-player-service/helper"
 	"sc-player-service/model/api/response"
 	"sc-player-service/service"
 )
@@ -21,13 +22,13 @@ func NewPlayerH(playerSvc *service.Player) *PlayerH {
 }
 
 func (ctrl *PlayerH) Get(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("user_id")
-	if userID == nil {
+	userID, ok := helper.GetFromContext[string](r.Context(), "user_id")
+	if !ok {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	data, err := ctrl.PlayerSvc.GetOrCreatePlayer(r.Context(), userID.(string))
+	data, err := ctrl.PlayerSvc.GetOrCreatePlayer(r.Context(), userID)
 	if err != nil {
 		http.Error(w, "failed to get or create player", http.StatusInternalServerError)
 		return
