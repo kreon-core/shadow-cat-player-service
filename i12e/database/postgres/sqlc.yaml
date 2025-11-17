@@ -5,8 +5,8 @@ sql:
     queries: "query"
     gen:
       go:
-        package: "repository"
-        out: "../../../repository/postgres"
+        package: "pgsqlc"
+        out: "../../../repository/pgsqlc"
         sql_package: "pgx/v5"
         emit_interface: false
         emit_json_tags: true

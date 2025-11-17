@@ -1,6 +1,6 @@
 package service
 
-import repository "sc-player-service/repository/postgres"
+import "sc-player-service/repository"
 
 type Player struct {
 	PlayerRepo *repository.Player

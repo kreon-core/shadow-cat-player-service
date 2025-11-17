@@ -2,7 +2,7 @@ package server
 
 import (
 	"sc-player-service/controller"
-	repository "sc-player-service/repository/postgres"
+	"sc-player-service/repository"
 	"sc-player-service/service"
 )
 
