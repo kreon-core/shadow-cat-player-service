@@ -3,7 +3,7 @@ package server
 import (
 	"sc-player-service/controller"
 	"sc-player-service/repository"
-	"sc-player-service/repository/pgsqlc"
+	"sc-player-service/repository/playersqlc"
 	"sc-player-service/service"
 )
 
@@ -16,7 +16,7 @@ type Container struct {
 }
 
 func NewContainer(
-	playerDBQueries *pgsqlc.Queries,
+	playerDBQueries *playersqlc.Queries,
 ) *Container {
 	playerRepo := repository.NewPlayer(playerDBQueries)
 

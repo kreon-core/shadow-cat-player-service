@@ -1,10 +1,10 @@
 package response
 
-type PlayerChapterProgress struct {
-	Chapters []PlayerChapter `json:"chapters"`
+type ChapterProgress struct {
+	Chapters []Chapter `json:"chapters"`
 }
 
-type PlayerChapter struct {
+type Chapter struct {
 	ChapterID          int          `json:"chapter_id"`
 	CheckedCheckpoints map[int]bool `json:"checked_checkpoints"`
 }

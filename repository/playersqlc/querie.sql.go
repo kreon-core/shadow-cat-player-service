@@ -3,7 +3,7 @@
 //   sqlc v1.30.0
 // source: querie.sql
 
-package pgsqlc
+package playersqlc
 
 import (
 	"context"

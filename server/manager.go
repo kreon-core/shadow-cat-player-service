@@ -10,7 +10,7 @@ import (
 	"github.com/kreon-core/shadow-cat-common/postgres"
 
 	"sc-player-service/infrastructure/config"
-	"sc-player-service/repository/pgsqlc"
+	"sc-player-service/repository/playersqlc"
 )
 
 type Manager struct {
@@ -18,7 +18,7 @@ type Manager struct {
 	Container  *Container
 
 	PlayerDBPool    *pgxpool.Pool
-	PlayerDBQueries *pgsqlc.Queries
+	PlayerDBQueries *playersqlc.Queries
 
 	// RedisClient *redis.Client
 
@@ -35,7 +35,7 @@ func New(ctx context.Context, cfg *config.Config) (*Manager, error) {
 	}
 	logc.Info().Str("db", "player").Msg("DB connection pool established")
 
-	playerDBQueries := pgsqlc.New(playerDBPool)
+	playerDBQueries := playersqlc.New(playerDBPool)
 
 	// Redis
 	// KafkaProducer

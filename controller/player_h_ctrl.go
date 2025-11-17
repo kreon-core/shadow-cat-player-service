@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+
 	"sc-player-service/service"
 )
 
@@ -21,6 +22,7 @@ func (ctrl *PlayerH) Update(w http.ResponseWriter, r *http.Request) {}
 func (ctrl *PlayerH) GetEnergy(w http.ResponseWriter, r *http.Request)    {}
 func (ctrl *PlayerH) GetInventory(w http.ResponseWriter, r *http.Request) {}
 
-func (ctrl *PlayerH) GetTowerProgress(w http.ResponseWriter, r *http.Request)     {}
 func (ctrl *PlayerH) GetDailyTaskProgress(w http.ResponseWriter, r *http.Request) {}
-func (ctrl *PlayerH) GetChapterProgress(w http.ResponseWriter, r *http.Request)   {}
+
+func (ctrl *PlayerH) GetTowerProgress(w http.ResponseWriter, r *http.Request)   {}
+func (ctrl *PlayerH) GetChapterProgress(w http.ResponseWriter, r *http.Request) {}

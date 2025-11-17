@@ -1,0 +1,16 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    schema: "schema"
+    queries: "query"
+    gen:
+      go:
+        package: "playersqlc"
+        out: "../../../repository/playersqlc"
+        sql_package: "pgx/v5"
+        emit_interface: true # for mocking/testing
+        emit_json_tags: true # for API output
+        emit_db_tags: true # include db tags for reflection/ORM
+        emit_empty_slices: true # consistent JSON output
+        emit_methods_with_db_argument: false # bind to Queries struct
+        emit_prepared: true # use prepared statements for performance

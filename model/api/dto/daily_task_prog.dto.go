@@ -1,10 +1,10 @@
 package response
 
-type PlayerDailyTaskProgress struct {
-	Tasks []PlayerDailyTask `json:"tasks"`
+type DailyTaskProgress struct {
+	Tasks []DailyTask `json:"tasks"`
 }
 
-type PlayerDailyTask struct {
+type DailyTask struct {
 	TaskID       string `json:"task_id"`
 	Progress     int    `json:"progress"`
 	Claimed      bool   `json:"claimed"`
