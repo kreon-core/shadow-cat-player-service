@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
-	tul "github.com/kreon-core/shadow-cat-common"
+	"github.com/kreon-core/shadow-cat-common/dbc"
 
 	"sc-player-service/model/api/dto"
 	"sc-player-service/repository"
@@ -25,7 +25,7 @@ func NewPlayer(playerRepo *repository.Player) *Player {
 }
 
 func (s *Player) GetOrCreatePlayer(ctx context.Context, playerID string) (*dto.Player, error) {
-	id, err := tul.ParseUUID(playerID)
+	id, err := dbc.ParseUUID(playerID)
 	if err != nil {
 		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
 	}

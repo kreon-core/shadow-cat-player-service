@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	tul "github.com/kreon-core/shadow-cat-common"
+	"github.com/kreon-core/shadow-cat-common/appc"
+	"github.com/kreon-core/shadow-cat-common/ctxc"
 
 	"sc-player-service/model/api/response"
 	"sc-player-service/service"
@@ -21,7 +22,7 @@ func NewPlayerH(playerSvc *service.Player) *PlayerH {
 }
 
 func (ctrl *PlayerH) Get(w http.ResponseWriter, r *http.Request) {
-	userID, ok := tul.GetFromContext[string](r.Context(), "user_id")
+	userID, ok := ctxc.GetFromContext[string](r.Context(), "user_id")
 	if !ok {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
@@ -35,8 +36,8 @@ func (ctrl *PlayerH) Get(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	resp := &response.Resp{
-		ReturnCode:    tul.Success,
-		ReturnMessage: tul.Message(tul.Success),
+		ReturnCode:    appc.Success,
+		ReturnMessage: appc.Message(appc.Success),
 		Data:          data,
 	}
 	json.NewEncoder(w).Encode(resp)

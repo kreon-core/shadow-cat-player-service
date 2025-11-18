@@ -8,8 +8,6 @@ import (
 func LoadRoutes(container *Container) func(r chi.Router) {
 	return func(r chi.Router) {
 		r.Use(chiMW.AllowContentType("application/json"))
-		r.Use(chiMW.ContentCharset("utf-8"))
-		r.Use(container.AuthMW.Handle)
 		r.Route("/player", func(r chi.Router) {
 			r.Get("/", container.PlayerHCtrl.Get)
 			r.Put("/", container.PlayerHCtrl.Update)

@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
-	tul "github.com/kreon-core/shadow-cat-common"
 	"github.com/kreon-core/shadow-cat-common/logc"
+	"github.com/kreon-core/shadow-cat-common/utlc"
 	"github.com/spf13/viper"
 
 	"sc-player-service/infrastructure/config"
@@ -36,7 +36,7 @@ func LoadConfigs(profile ...string) (*config.Config, error) {
 	v.SetConfigType(configType)
 
 	filename := configName
-	if len(profile) > 0 && !tul.IsBlank(profile[0]) {
+	if len(profile) > 0 && !utlc.IsBlank(profile[0]) {
 		filename = fmt.Sprintf("%s-%s", configName, profile[0])
 	}
 

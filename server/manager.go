@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	tul "github.com/kreon-core/shadow-cat-common"
+	"github.com/kreon-core/shadow-cat-common/dbc"
 	"github.com/kreon-core/shadow-cat-common/logc"
 
 	"sc-player-service/infrastructure/config"
@@ -29,7 +29,7 @@ type Manager struct {
 }
 
 func New(ctx context.Context, cfg *config.Config) (*Manager, error) {
-	playerDBPool, err := tul.NewPostgresConnection(ctx, &cfg.DB.Player)
+	playerDBPool, err := dbc.NewPostgresConnection(ctx, &cfg.DB.Player)
 	if err != nil {
 		return nil, fmt.Errorf("init_player_db -> %w", err)
 	}
