@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kreon-core/shadow-cat-common/dbc"
 
+	"sc-player-service/helper"
 	"sc-player-service/model/api/dto"
 	"sc-player-service/model/api/request"
 	"sc-player-service/repository"
@@ -229,6 +230,29 @@ func (s *Player) GetChapterProgress(ctx context.Context, playerID string) (*dto.
 	return chapterProgressData, nil
 }
 
+func (s *Player) GetDailySignInProgress(ctx context.Context, playerID string) (*dto.DailySignInProgress, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	markDailySignInDaysParams, err := s.getOrCreateDailySignInProgress(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get_or_create_daily_sign_in_progress -> %w", err)
+	}
+
+	claimedDays := make(map[int]bool)
+	err = json.Unmarshal(markDailySignInDaysParams.ClaimedDays, &claimedDays)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshal_claimed_days -> %w", err)
+	}
+
+	return &dto.DailySignInProgress{
+		WeekID:      markDailySignInDaysParams.ID.String(),
+		ClaimedDays: claimedDays,
+	}, nil
+}
+
 func (s *Player) newPlayer(id pgtype.UUID) (*playersqlc.CreateNewPlayerParams, error) {
 	bestMap := dto.BestMap{
 		MapID:      0,
@@ -322,4 +346,64 @@ func (s *Player) calcNUpdateEnergy(
 		nextEnergyAt = newNextEnergyAt
 	}
 	return curEnergy, nextEnergyAt, nil
+}
+
+func (s *Player) getOrCreateDailySignInProgress(
+	ctx context.Context,
+	playerID pgtype.UUID,
+) (*playersqlc.MarkDailySignInDaysParams, error) {
+	createNewRow := false
+	weakStartAt := helper.WeekStartAt()
+
+	// TODO: Begin transaction?
+
+	getDailySignInByPlayerIDRow, err := s.PlayerRepo.PlayerQueries.GetDailySignInByPlayerID(
+		ctx,
+		playersqlc.GetDailySignInByPlayerIDParams{
+			PlayerID: playerID,
+			WeekStartAt: pgtype.Timestamptz{
+				Time:  weakStartAt,
+				Valid: true,
+			},
+		},
+	)
+	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("get_daily_sign_in_by_player_id -> %w", err)
+		}
+		createNewRow = true
+	}
+
+	var markDailySignInDaysParams playersqlc.MarkDailySignInDaysParams
+	if createNewRow {
+		initDailySignInRow, err := s.PlayerRepo.PlayerQueries.InitDailySignIn(
+			ctx,
+			playersqlc.InitDailySignInParams{
+				PlayerID: playerID,
+				WeekStartAt: pgtype.Timestamptz{
+					Time:  weakStartAt,
+					Valid: true,
+				},
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("init_daily_sign_in -> %w", err)
+		}
+
+		markDailySignInDaysParams = playersqlc.MarkDailySignInDaysParams{
+			ID:          initDailySignInRow.ID,
+			PlayerID:    playerID,
+			ClaimedDays: initDailySignInRow.ClaimedDays,
+		}
+	} else {
+		markDailySignInDaysParams = playersqlc.MarkDailySignInDaysParams{
+			ID:          getDailySignInByPlayerIDRow.ID,
+			PlayerID:    playerID,
+			ClaimedDays: getDailySignInByPlayerIDRow.ClaimedDays,
+		}
+	}
+
+	// TODO: End transaction
+
+	return &markDailySignInDaysParams, nil
 }

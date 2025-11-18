@@ -1,11 +1,6 @@
 package dto
 
 type DailySignInProgress struct {
-	WeekNo     int         `json:"week_no"`
-	SignedDays []SignedDay `json:"signed_days"`
-}
-
-type SignedDay struct {
-	Day     int  `json:"day"`
-	Claimed bool `json:"claimed"`
+	WeekID      string       `json:"week_id"`
+	ClaimedDays map[int]bool `json:"claimed_days"`
 }

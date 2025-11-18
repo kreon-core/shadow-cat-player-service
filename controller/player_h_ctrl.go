@@ -145,7 +145,24 @@ func (ctrl *PlayerH) GetChapterProgress(w http.ResponseWriter, r *http.Request) 
 }
 func (ctrl *PlayerH) ClaimChapterRewards(w http.ResponseWriter, r *http.Request) {}
 
-func (ctrl *PlayerH) GetDailySignProgress(w http.ResponseWriter, r *http.Request)  {}
+func (ctrl *PlayerH) GetDailySignInProgress(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_GetDailySignInProgress: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
+
+	data, err := ctrl.PlayerSvc.GetDailySignInProgress(r.Context(), playerID)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_GetDailySignInProgress: Failed to get player daily sign-in progress")
+		unspecifiedErrorResponse(w)
+		return
+	}
+
+	successResponse(w, data)
+}
+
 func (ctrl *PlayerH) ClaimDailySignRewards(w http.ResponseWriter, r *http.Request) {}
 
 func (ctrl *PlayerH) GetDailyTaskProgress(w http.ResponseWriter, r *http.Request)  {}

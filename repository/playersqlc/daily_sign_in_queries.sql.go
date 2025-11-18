@@ -13,9 +13,13 @@ import (
 
 const getDailySignInByPlayerID = `-- name: GetDailySignInByPlayerID :one
 SELECT
-    id, week_start_at, claimed_days
-FROM daily_sign_in
-WHERE player_id = $1
+    id,
+    week_start_at,
+    claimed_days
+FROM
+    daily_sign_in
+WHERE
+    player_id = $1
     AND week_start_at = $2
 `
 
@@ -38,9 +42,14 @@ func (q *Queries) GetDailySignInByPlayerID(ctx context.Context, arg GetDailySign
 }
 
 const initDailySignIn = `-- name: InitDailySignIn :one
-INSERT INTO daily_sign_in (player_id, week_start_at)
-VALUES ($1, $2)
-RETURNING id, week_start_at, claimed_days
+INSERT INTO
+    daily_sign_in (player_id, week_start_at)
+VALUES
+    ($1, $2)
+RETURNING
+    id,
+    week_start_at,
+    claimed_days
 `
 
 type InitDailySignInParams struct {
@@ -63,16 +72,21 @@ func (q *Queries) InitDailySignIn(ctx context.Context, arg InitDailySignInParams
 
 const markDailySignInDays = `-- name: MarkDailySignInDays :one
 UPDATE daily_sign_in
-SET claimed_days = $3
-WHERE player_id = $1
-    AND week_start_at = $2
-RETURNING id, week_start_at, claimed_days
+SET
+    claimed_days = $3
+WHERE
+    player_id = $1
+    AND id = $2
+RETURNING
+    id,
+    week_start_at,
+    claimed_days
 `
 
 type MarkDailySignInDaysParams struct {
-	PlayerID    pgtype.UUID        `db:"player_id" json:"player_id"`
-	WeekStartAt pgtype.Timestamptz `db:"week_start_at" json:"week_start_at"`
-	ClaimedDays []byte             `db:"claimed_days" json:"claimed_days"`
+	PlayerID    pgtype.UUID `db:"player_id" json:"player_id"`
+	ID          pgtype.UUID `db:"id" json:"id"`
+	ClaimedDays []byte      `db:"claimed_days" json:"claimed_days"`
 }
 
 type MarkDailySignInDaysRow struct {
@@ -82,7 +96,7 @@ type MarkDailySignInDaysRow struct {
 }
 
 func (q *Queries) MarkDailySignInDays(ctx context.Context, arg MarkDailySignInDaysParams) (MarkDailySignInDaysRow, error) {
-	row := q.db.QueryRow(ctx, markDailySignInDays, arg.PlayerID, arg.WeekStartAt, arg.ClaimedDays)
+	row := q.db.QueryRow(ctx, markDailySignInDays, arg.PlayerID, arg.ID, arg.ClaimedDays)
 	var i MarkDailySignInDaysRow
 	err := row.Scan(&i.ID, &i.WeekStartAt, &i.ClaimedDays)
 	return i, err
