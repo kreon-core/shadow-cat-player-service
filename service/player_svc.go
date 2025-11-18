@@ -351,7 +351,7 @@ func (s *Player) UnlockDailySignIn(
 		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
 	}
 
-	weekId, err := dbc.ParseUUID(req.WeekID)
+	weekID, err := dbc.ParseUUID(req.WeekID)
 	if err != nil {
 		return nil, fmt.Errorf("parse_uuid_string_week_id -> %w", err)
 	}
@@ -361,7 +361,7 @@ func (s *Player) UnlockDailySignIn(
 	getDailySignInByIDRow, err := s.PlayerRepo.PlayerQueries.GetDailySignInByID(
 		ctx,
 		playersqlc.GetDailySignInByIDParams{
-			ID:       weekId,
+			ID:       weekID,
 			PlayerID: id,
 		},
 	)
@@ -415,7 +415,7 @@ func (s *Player) ClaimDailySignIn(ctx context.Context,
 		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
 	}
 
-	weekId, err := dbc.ParseUUID(req.WeekID)
+	weekID, err := dbc.ParseUUID(req.WeekID)
 	if err != nil {
 		return nil, fmt.Errorf("parse_uuid_string_week_id -> %w", err)
 	}
@@ -425,7 +425,7 @@ func (s *Player) ClaimDailySignIn(ctx context.Context,
 	getDailySignInByIDRow, err := s.PlayerRepo.PlayerQueries.GetDailySignInByID(
 		ctx,
 		playersqlc.GetDailySignInByIDParams{
-			ID:       weekId,
+			ID:       weekID,
 			PlayerID: id,
 		},
 	)
