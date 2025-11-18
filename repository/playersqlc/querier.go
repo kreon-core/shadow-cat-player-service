@@ -12,12 +12,14 @@ import (
 
 type Querier interface {
 	AddTowerTicketsToPlayer(ctx context.Context, arg AddTowerTicketsToPlayerParams) (AddTowerTicketsToPlayerRow, error)
+	ClaimDailyTask(ctx context.Context, arg ClaimDailyTaskParams) (ClaimDailyTaskRow, error)
 	ConsumeTowerTicketsFromPlayer(ctx context.Context, arg ConsumeTowerTicketsFromPlayerParams) (ConsumeTowerTicketsFromPlayerRow, error)
 	CreateNewPlayer(ctx context.Context, arg CreateNewPlayerParams) (CreateNewPlayerRow, error)
 	GetChapterProgressByPlayerID(ctx context.Context, playerID pgtype.UUID) ([]GetChapterProgressByPlayerIDRow, error)
 	GetChapterProgressByPlayerIDAndChapterID(ctx context.Context, arg GetChapterProgressByPlayerIDAndChapterIDParams) (GetChapterProgressByPlayerIDAndChapterIDRow, error)
 	GetDailySignInByID(ctx context.Context, arg GetDailySignInByIDParams) (GetDailySignInByIDRow, error)
 	GetDailySignInByPlayerID(ctx context.Context, arg GetDailySignInByPlayerIDParams) (GetDailySignInByPlayerIDRow, error)
+	GetDailyTasksByPlayerID(ctx context.Context, arg GetDailyTasksByPlayerIDParams) ([]GetDailyTasksByPlayerIDRow, error)
 	GetInventoryByPlayerID(ctx context.Context, id pgtype.UUID) (GetInventoryByPlayerIDRow, error)
 	GetPlayerByID(ctx context.Context, id pgtype.UUID) (GetPlayerByIDRow, error)
 	GetPlayerEnergyByID(ctx context.Context, id pgtype.UUID) (GetPlayerEnergyByIDRow, error)
@@ -32,6 +34,7 @@ type Querier interface {
 	UpdatePlayerEnergy(ctx context.Context, arg UpdatePlayerEnergyParams) (UpdatePlayerEnergyRow, error)
 	UpsertChapterProgressOnPlayer(ctx context.Context, arg UpsertChapterProgressOnPlayerParams) (UpsertChapterProgressOnPlayerRow, error)
 	UpsertOwnedProps(ctx context.Context, dollar_1 []byte) ([]pgtype.UUID, error)
+	UpsertProgressForDailyTask(ctx context.Context, arg UpsertProgressForDailyTaskParams) (UpsertProgressForDailyTaskRow, error)
 	UpsertTowerProgressOnPlayer(ctx context.Context, arg UpsertTowerProgressOnPlayerParams) error
 }
 

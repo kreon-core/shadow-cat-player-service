@@ -37,4 +37,12 @@ var (
 		2: {Coins: 1000, Gems: 10},
 		3: {Coins: 1500, Gems: 15},
 	}
+
+	DailyTaskRewards = map[int32]Reward{
+		1: {Coins: 500, Gems: 5},
+		2: {Coins: 1000, Gems: 10},
+		3: {Coins: 1500, Gems: 15},
+		4: {Coins: 2000, Gems: 20},
+		5: {Coins: 2500, Gems: 25},
+	}
 )

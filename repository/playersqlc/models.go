@@ -17,12 +17,13 @@ type Chapter struct {
 }
 
 type DailyShop struct {
-	ID        pgtype.UUID        `db:"id" json:"id"`
-	PlayerID  pgtype.UUID        `db:"player_id" json:"player_id"`
-	Item      int32              `db:"item" json:"item"`
-	Quantity  int32              `db:"quantity" json:"quantity"`
-	CreatedAt pgtype.Timestamptz `db:"created_at" json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+	ID         pgtype.UUID        `db:"id" json:"id"`
+	PlayerID   pgtype.UUID        `db:"player_id" json:"player_id"`
+	Item       int32              `db:"item" json:"item"`
+	DayStartAt pgtype.Timestamptz `db:"day_start_at" json:"day_start_at"`
+	Quantity   int32              `db:"quantity" json:"quantity"`
+	CreatedAt  pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
 }
 
 type DailySignIn struct {
@@ -38,6 +39,7 @@ type DailyTask struct {
 	ID           pgtype.UUID        `db:"id" json:"id"`
 	PlayerID     pgtype.UUID        `db:"player_id" json:"player_id"`
 	TaskID       int32              `db:"task_id" json:"task_id"`
+	DayStartAt   pgtype.Timestamptz `db:"day_start_at" json:"day_start_at"`
 	Progress     int32              `db:"progress" json:"progress"`
 	Claimed      bool               `db:"claimed" json:"claimed"`
 	PointsEarned int32              `db:"points_earned" json:"points_earned"`

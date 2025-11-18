@@ -248,15 +248,80 @@ func (ctrl *PlayerH) ClaimDailySignRewards(w http.ResponseWriter, r *http.Reques
 	successResponse(w, data)
 }
 
-func (ctrl *PlayerH) GetDailyTaskProgress(w http.ResponseWriter, r *http.Request)  {}
+func (ctrl *PlayerH) GetDailyTaskProgress(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_GetDailyTaskProgress: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
 
-func (ctrl *PlayerH) ClaimDailyTaskRewards(w http.ResponseWriter, r *http.Request) {}
+	data, err := ctrl.PlayerSvc.GetDailyTaskProgress(r.Context(), playerID)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_GetDailyTaskProgress: Failed to get player daily task progress")
+		unspecifiedErrorResponse(w)
+		return
+	}
+
+	successResponse(w, data)
+}
+
+func (ctrl *PlayerH) ClaimDailyTaskRewards(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_ClaimDailyTaskRewards: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
+
+	var req request.ClaimDailyTask
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_ClaimDailyTaskRewards: Failed to decode request body")
+		badRequestResponse(w)
+		return
+	}
+	defer func() { _ = r.Body.Close() }()
+
+	data, err := ctrl.PlayerSvc.ClaimDailyTask(r.Context(), playerID, &req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_ClaimDailyTaskRewards: Failed to claim daily task rewards")
+		unspecifiedErrorResponse(w)
+		return
+	}
+
+	successResponse(w, data)
+}
+
+func (ctrl *PlayerH) ExchangeGemsForCoins(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_ExchangeGemsForCoins: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
+
+	var req request.ExchangeGemsForCoins
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_ExchangeGemsForCoins: Failed to decode request body")
+		badRequestResponse(w)
+		return
+	}
+	defer func() { _ = r.Body.Close() }()
+
+	data, err := ctrl.PlayerSvc.ExchangeGemsForCoins(r.Context(), playerID, &req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_ExchangeGemsForCoins: Failed to exchange gems for coins")
+		unspecifiedErrorResponse(w)
+		return
+	}
+
+	successResponse(w, data)
+}
 
 func (ctrl *PlayerH) GetDailyShopProgress(w http.ResponseWriter, r *http.Request)   {}
 func (ctrl *PlayerH) PurchaseDailyShopItems(w http.ResponseWriter, r *http.Request) {}
-
-func (ctrl *PlayerH) ExchangeGemsForCoins(w http.ResponseWriter, r *http.Request) {}
-func (ctrl *PlayerH) BuyEnergy(w http.ResponseWriter, r *http.Request)            {}
 
 func (ctrl *PlayerH) StartBattle(w http.ResponseWriter, r *http.Request)   {}
 func (ctrl *PlayerH) ResumeBattle(w http.ResponseWriter, r *http.Request)  {}

@@ -88,12 +88,15 @@ CREATE TABLE daily_task (
     player_id UUID NOT NULL REFERENCES player(id) ON UPDATE CASCADE ON DELETE CASCADE,
 
     task_id INT NOT NULL,
+    day_start_at TIMESTAMPTZ NOT NULL,
     progress INT NOT NULL DEFAULT 0,
     claimed BOOLEAN NOT NULL DEFAULT FALSE,
     points_earned INT NOT NULL DEFAULT 0,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    UNIQUE(player_id, task_id, day_start_at)
 );
 
 CREATE TABLE daily_shop(
@@ -101,8 +104,11 @@ CREATE TABLE daily_shop(
     player_id UUID NOT NULL REFERENCES player(id) ON UPDATE CASCADE ON DELETE CASCADE,
 
     item INT NOT NULL,
+    day_start_at TIMESTAMPTZ NOT NULL,
     quantity INT NOT NULL DEFAULT 0,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    UNIQUE(player_id, item, day_start_at)
 );

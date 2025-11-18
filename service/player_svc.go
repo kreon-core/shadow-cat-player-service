@@ -471,6 +471,119 @@ func (s *Player) ClaimDailySignIn(ctx context.Context,
 	}, nil
 }
 
+func (s *Player) GetDailyTaskProgress(ctx context.Context, playerID string) (*dto.DailyTaskProgress, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	dayStartAt := helper.DayStartAt(time.Now())
+
+	dailyTaskProgress, err := s.PlayerRepo.PlayerQueries.GetDailyTasksByPlayerID(
+		ctx,
+		playersqlc.GetDailyTasksByPlayerIDParams{
+			PlayerID: id,
+			DayStartAt: pgtype.Timestamptz{
+				Time:  dayStartAt,
+				Valid: true,
+			},
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get_daily_task_progress_by_player_id -> %w", err)
+	}
+
+	dailyTaskProgressData := &dto.DailyTaskProgress{
+		TotalPoints: 0,
+	}
+	for _, dtp := range dailyTaskProgress {
+		dailyTaskProgressData.Tasks = append(dailyTaskProgressData.Tasks, dto.DailyTask{
+			TaskID:       dtp.TaskID,
+			Progress:     dtp.Progress,
+			Claimed:      dtp.Claimed,
+			PointsEarned: dtp.PointsEarned,
+		})
+		dailyTaskProgressData.TotalPoints += dtp.PointsEarned
+	}
+
+	return dailyTaskProgressData, nil
+}
+
+func (s *Player) ClaimDailyTask(
+	ctx context.Context,
+	playerID string,
+	req *request.ClaimDailyTask,
+) (*dto.DailyTaskProgress, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	dayStartAt := helper.DayStartAt(time.Now())
+
+	_, err = s.PlayerRepo.PlayerQueries.ClaimDailyTask(
+		ctx,
+		playersqlc.ClaimDailyTaskParams{
+			PlayerID: id,
+			TaskID:   req.TaskID,
+			DayStartAt: pgtype.Timestamptz{
+				Time:  dayStartAt,
+				Valid: true,
+			},
+			PointsEarned: req.PointsEarned,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("claim_daily_task -> %w", err)
+	}
+
+	reward := temp.DailyTaskRewards[req.TaskID]
+	player, err := s.updatePlayer(ctx, id, &dto.PlayerChanges{
+		Coins: &reward.Coins,
+		Gems:  &reward.Gems,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("update_player -> %w", err)
+	}
+
+	dailyTaskProgress, err := s.GetDailyTaskProgress(ctx, playerID)
+	if err != nil {
+		return nil, fmt.Errorf("get_daily_task_progress -> %w", err)
+	}
+
+	dailyTaskProgress.PlayerChanges = &dto.PlayerChanges{
+		Coins: &player.Coins,
+		Gems:  &player.Gems,
+	}
+
+	return dailyTaskProgress, nil
+}
+
+func (s *Player) ExchangeGemsForCoins(
+	ctx context.Context,
+	playerID string,
+	req *request.ExchangeGemsForCoins,
+) (*dto.PlayerChanges, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	gemsChange := -req.GemsCost
+	player, err := s.updatePlayer(ctx, id, &dto.PlayerChanges{
+		Gems:  &gemsChange,
+		Coins: &req.CoinsGained,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("update_player -> %w", err)
+	}
+
+	return &dto.PlayerChanges{
+		Coins: &player.Coins,
+		Gems:  &player.Gems,
+	}, nil
+}
+
 func (s *Player) newPlayer(id pgtype.UUID) (*playersqlc.CreateNewPlayerParams, error) {
 	bestMap := dto.BestMap{
 		MapID:      0,
@@ -528,9 +641,15 @@ func (s *Player) updatePlayer(ctx context.Context, id pgtype.UUID, changes *dto.
 
 	if changes.Level != nil {
 		player.Level += *changes.Level
+		if player.Level < 0 {
+			return nil, errors.New("insufficient_level")
+		}
 	}
 	if changes.Exp != nil {
 		player.Exp += *changes.Exp
+		if player.Exp < 0 {
+			return nil, errors.New("insufficient_exp")
+		}
 
 		// TODO: make this configurable
 		if player.Exp > 100 {
@@ -540,9 +659,15 @@ func (s *Player) updatePlayer(ctx context.Context, id pgtype.UUID, changes *dto.
 	}
 	if changes.Coins != nil {
 		player.Coins += *changes.Coins
+		if player.Coins < 0 {
+			return nil, errors.New("insufficient_coins")
+		}
 	}
 	if changes.Gems != nil {
 		player.Gems += *changes.Gems
+		if player.Gems < 0 {
+			return nil, errors.New("insufficient_gems")
+		}
 	}
 	if changes.BestMap != nil {
 		bestMapBytes, err := json.Marshal(changes.BestMap)

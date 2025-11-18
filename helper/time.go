@@ -18,3 +18,9 @@ func WeekStartAt(now time.Time) time.Time {
 func DayNoFromStartWeek(now time.Time) int {
 	return int(now.Weekday()+6) % 7
 }
+
+func DayStartAt(now time.Time) time.Time {
+	year, month, day := now.Date()
+	loc := now.Location()
+	return time.Date(year, month, day, 0, 0, 0, 0, loc)
+}
