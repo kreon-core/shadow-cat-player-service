@@ -61,10 +61,6 @@ func CallAPI[T any](c *Client, ctx context.Context,
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode >= 400 {
-		return nil, nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
-
 	resBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, nil, fmt.Errorf("read_response_body -> %w", err)

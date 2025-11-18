@@ -7,14 +7,14 @@ import (
 )
 
 type Config struct {
-	HTTP    HTTP    `mapstructure:"http"`
+	HTTP    HTTP    `mapstructure:"http"    validate:"required"`
 	DB      DB      `mapstructure:"db"      validate:"required"`
 	Secrets Secrets `mapstructure:"secrets" validate:"required"`
 }
 
 type HTTP struct {
-	Host              *string        `mapstructure:"host"`
-	Port              *int           `mapstructure:"port"`
+	Host              string         `mapstructure:"host"                validate:"required"`
+	Port              int            `mapstructure:"port"                validate:"required"`
 	ReadTimeout       *time.Duration `mapstructure:"read-timeout"`
 	ReadHeaderTimeout *time.Duration `mapstructure:"read-header-timeout"`
 	WriteTimeout      *time.Duration `mapstructure:"write-timeout"`

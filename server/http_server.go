@@ -19,8 +19,6 @@ import (
 )
 
 const (
-	srvHost              = ""
-	srvPort              = 8080
 	srvReadTimeout       = 15 * time.Second
 	srvReadHeaderTimeout = 15 * time.Second
 	srvWriteTimeout      = 15 * time.Second
@@ -55,12 +53,9 @@ func NewHTTPServer(cfg *config.HTTP, container *Container) *HTTPServer {
 
 	r.Route("/api/v1", LoadRoutes(container))
 
-	host := utlc.OrElse(cfg.Host, srvHost)
-	port := utlc.OrElse(cfg.Port, srvPort)
-
 	return &HTTPServer{
 		Server: &http.Server{
-			Addr:              fmt.Sprintf("%s:%d", host, port),
+			Addr:              fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 			Handler:           r,
 			ReadTimeout:       utlc.OrElse(cfg.ReadTimeout, srvReadTimeout),
 			ReadHeaderTimeout: utlc.OrElse(cfg.ReadHeaderTimeout, srvReadHeaderTimeout),
