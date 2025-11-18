@@ -11,8 +11,24 @@ import (
 )
 
 type Querier interface {
-	CreatePlayer(ctx context.Context, arg CreatePlayerParams) (CreatePlayerRow, error)
+	AddTowerTicketsToPlayer(ctx context.Context, arg AddTowerTicketsToPlayerParams) (AddTowerTicketsToPlayerRow, error)
+	ConsumeTowerTicketsFromPlayer(ctx context.Context, arg ConsumeTowerTicketsFromPlayerParams) (ConsumeTowerTicketsFromPlayerRow, error)
+	CreateNewPlayer(ctx context.Context, arg CreateNewPlayerParams) (CreateNewPlayerRow, error)
+	GetChapterProgressByPlayerID(ctx context.Context, playerID pgtype.UUID) ([]GetChapterProgressByPlayerIDRow, error)
+	GetChapterProgressByPlayerIDAndChapterID(ctx context.Context, playerID pgtype.UUID) (GetChapterProgressByPlayerIDAndChapterIDRow, error)
+	GetInventoryByPlayerID(ctx context.Context, id pgtype.UUID) (GetInventoryByPlayerIDRow, error)
 	GetPlayerByID(ctx context.Context, id pgtype.UUID) (GetPlayerByIDRow, error)
+	GetPlayerEnergyByID(ctx context.Context, id pgtype.UUID) (GetPlayerEnergyByIDRow, error)
+	GetTowerProgressByPlayerID(ctx context.Context, playerID pgtype.UUID) ([]GetTowerProgressByPlayerIDRow, error)
+	GetTowerProgressByPlayerIDAndTowerID(ctx context.Context, arg GetTowerProgressByPlayerIDAndTowerIDParams) (GetTowerProgressByPlayerIDAndTowerIDRow, error)
+	InsertOwnedSkins(ctx context.Context, dollar_1 []byte) ([]pgtype.UUID, error)
+	RemoveOwnedSkins(ctx context.Context, arg RemoveOwnedSkinsParams) ([]pgtype.UUID, error)
+	RemoveQuantityProp(ctx context.Context, arg RemoveQuantityPropParams) (RemoveQuantityPropRow, error)
+	UpdatePlayer(ctx context.Context, arg UpdatePlayerParams) (UpdatePlayerRow, error)
+	UpdatePlayerEnergy(ctx context.Context, arg UpdatePlayerEnergyParams) (UpdatePlayerEnergyRow, error)
+	UpsertChapterProgressOnPlayer(ctx context.Context, arg UpsertChapterProgressOnPlayerParams) (UpsertChapterProgressOnPlayerRow, error)
+	UpsertOwnedProps(ctx context.Context, dollar_1 []byte) ([]pgtype.UUID, error)
+	UpsertTowerProgressOnPlayer(ctx context.Context, arg UpsertTowerProgressOnPlayerParams) error
 }
 
 var _ Querier = (*Queries)(nil)

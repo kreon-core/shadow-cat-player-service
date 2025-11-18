@@ -56,7 +56,6 @@ type Player struct {
 	BestMap       []byte             `db:"best_map" json:"best_map"`
 	CurrentSkin   int32              `db:"current_skin" json:"current_skin"`
 	EquippedProps []byte             `db:"equipped_props" json:"equipped_props"`
-	OwnedSkins    []byte             `db:"owned_skins" json:"owned_skins"`
 	CreatedAt     pgtype.Timestamptz `db:"created_at" json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
 }
@@ -67,6 +66,14 @@ type Prop struct {
 	ConfigPropID int32              `db:"config_prop_id" json:"config_prop_id"`
 	Level        int32              `db:"level" json:"level"`
 	Quantity     int32              `db:"quantity" json:"quantity"`
+	CreatedAt    pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+}
+
+type Skin struct {
+	ID           pgtype.UUID        `db:"id" json:"id"`
+	PlayerID     pgtype.UUID        `db:"player_id" json:"player_id"`
+	ConfigSkinID int32              `db:"config_skin_id" json:"config_skin_id"`
 	CreatedAt    pgtype.Timestamptz `db:"created_at" json:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
 }

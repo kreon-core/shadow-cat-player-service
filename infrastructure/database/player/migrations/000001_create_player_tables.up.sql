@@ -13,10 +13,21 @@ CREATE TABLE player (
 
     current_skin INT NOT NULL DEFAULT 0,
     equipped_props JSONB NOT NULL DEFAULT '[]'::jsonb,
-    owned_skins JSONB NOT NULL DEFAULT '[0]'::jsonb,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE skin (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    player_id UUID NOT NULL REFERENCES player(id) ON UPDATE CASCADE ON DELETE CASCADE,
+
+    config_skin_id INT NOT NULL,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    UNIQUE(player_id, config_skin_id)
 );
 
 CREATE TABLE prop (

@@ -60,15 +60,15 @@ func CallAPI[T any](ctx context.Context, c *HTTPClient,
 		req.Header.Set(key, value)
 	}
 
+	logc.Info().Str("method", method).Str("url", url).
+		Any("body", body).Any("headers", headers).
+		Msg("Making HTTP request to external service")
+
 	resp, err := c.Client.Do(req)
 	if err != nil {
 		return 0, nil, nil, fmt.Errorf("do_http_request -> %w", err)
 	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			logc.Error().Err(err).Msg("Failed to close response body")
-		}
-	}()
+	defer func() { _ = resp.Body.Close() }()
 
 	resBody, err := io.ReadAll(resp.Body)
 	if err != nil {
