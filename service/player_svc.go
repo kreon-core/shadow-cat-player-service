@@ -139,6 +139,47 @@ func (s *Player) GetEnergy(ctx context.Context, playerID string) (*dto.PlayerEne
 	}, nil
 }
 
+func (s *Player) GetInventory(ctx context.Context, playerID string) (*dto.PlayerInventory, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	playerInventory, err := s.PlayerRepo.PlayerQueries.GetInventoryByPlayerID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get_inventory_by_player_id -> %w", err)
+	}
+
+	var skins []int
+	switch v := playerInventory.OwnedSkins.(type) {
+	case []int64:
+		for _, s := range v {
+			skins = append(skins, int(s))
+		}
+	case nil:
+		skins = []int{}
+	default:
+		return nil, fmt.Errorf("unexpected type for OwnedSkins: %T", v)
+	}
+
+	var props []dto.Prop
+	switch v := playerInventory.OwnedProps.(type) {
+	case []byte:
+		if err := json.Unmarshal(v, &props); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal props: %w", err)
+		}
+	case nil:
+		props = []dto.Prop{}
+	default:
+		return nil, fmt.Errorf("unexpected type for OwnedProps: %T", v)
+	}
+
+	return &dto.PlayerInventory{
+		Skins: skins,
+		Props: props,
+	}, nil
+}
+
 func (s *Player) newPlayer(id pgtype.UUID) (*playersqlc.CreateNewPlayerParams, error) {
 	bestMap := dto.BestMap{
 		MapID:      0,
