@@ -77,34 +77,15 @@ func (s *Player) UpdatePlayer(
 		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
 	}
 
-	// TODO: Begin transaction?
-
-	player, err := s.PlayerRepo.PlayerQueries.GetPlayerByID(ctx, id)
-	if err != nil {
-		return nil, fmt.Errorf("get_player_by_id -> %w", err)
-	}
-
-	equippedPropsBytes, err := json.Marshal(updateData.EquippedProps)
-	if err != nil {
-		return nil, fmt.Errorf("marshal_best_map -> %w", err)
-	}
-	_, err = s.PlayerRepo.PlayerQueries.UpdatePlayer(ctx, playersqlc.UpdatePlayerParams{
-		ID:            player.ID,
-		Level:         player.Level,
-		Exp:           player.Exp,
-		Coins:         player.Coins,
-		Gems:          player.Gems,
-		BestMap:       player.BestMap,
-		CurrentSkin:   updateData.CurrentSkin,
-		EquippedProps: equippedPropsBytes,
+	player, err := s.updatePlayer(ctx, id, &dto.PlayerChanges{
+		CurrentSkin:   &updateData.CurrentSkin,
+		EquippedProps: &updateData.EquippedProps,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("update_player -> %w", err)
 	}
 
-	// TODO: End transaction
-
-	return s.getPlayerData(&player)
+	return player, nil
 }
 
 func (s *Player) GetEnergy(ctx context.Context, playerID string) (*dto.PlayerEnergy, error) {
@@ -230,6 +211,69 @@ func (s *Player) GetChapterProgress(ctx context.Context, playerID string) (*dto.
 	return chapterProgressData, nil
 }
 
+func (s *Player) ClaimChapterRewards(
+	ctx context.Context,
+	playerID string,
+	req *request.ClaimChapterRewards,
+) (*dto.PlayerChanges, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	chapter, err := s.PlayerRepo.PlayerQueries.GetChapterProgressByPlayerIDAndChapterID(
+		ctx,
+		playersqlc.GetChapterProgressByPlayerIDAndChapterIDParams{
+			PlayerID:  id,
+			ChapterID: req.ChapterID,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get_chapter_progress_by_player_id_and_chapter_id -> %w", err)
+	}
+
+	checkedCheckpoints := make(map[int32]bool)
+	err = json.Unmarshal(chapter.CheckedCheckpoints, &checkedCheckpoints)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshal_checked_checkpoints -> %w", err)
+	}
+
+	if v, ok := checkedCheckpoints[req.Checkpoint]; ok && v {
+		return nil, errors.New("checkpoint_already_claimed")
+	}
+	checkedCheckpoints[req.Checkpoint] = true
+	checkedCheckpointsBytes, err := json.Marshal(checkedCheckpoints)
+	if err != nil {
+		return nil, fmt.Errorf("marshal_checked_checkpoints -> %w", err)
+	}
+
+	_, err = s.PlayerRepo.PlayerQueries.UpsertChapterProgressOnPlayer(
+		ctx,
+		playersqlc.UpsertChapterProgressOnPlayerParams{
+			PlayerID:           id,
+			ChapterID:          req.ChapterID,
+			CheckedCheckpoints: checkedCheckpointsBytes,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("update_chapter_checked_checkpoints -> %w", err)
+	}
+
+	reward := temp.ChapterCheckpointRewards[req.Checkpoint]
+	player, err := s.updatePlayer(ctx, id, &dto.PlayerChanges{
+		Coins: &reward.Coins,
+		Gems:  &reward.Gems,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("update_player -> %w", err)
+	}
+
+	return &dto.PlayerChanges{
+		Coins: &player.Coins,
+		Gems:  &player.Gems,
+	}, nil
+}
+
 func (s *Player) GetDailySignInProgress(ctx context.Context, playerID string) (*dto.DailySignInProgress, error) {
 	id, err := dbc.ParseUUID(playerID)
 	if err != nil {
@@ -250,6 +294,180 @@ func (s *Player) GetDailySignInProgress(ctx context.Context, playerID string) (*
 	return &dto.DailySignInProgress{
 		WeekID:      markDailySignInDaysParams.ID.String(),
 		ClaimedDays: claimedDays,
+	}, nil
+}
+
+func (s *Player) MarkDailySignIn(ctx context.Context, playerID string) error {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	// TODO: Begin transaction?
+
+	markDailySignInDaysParams, err := s.getOrCreateDailySignInProgress(ctx, id)
+	if err != nil {
+		return fmt.Errorf("get_or_create_daily_sign_in_progress -> %w", err)
+	}
+
+	claimedDays := make(map[int]bool)
+	err = json.Unmarshal(markDailySignInDaysParams.ClaimedDays, &claimedDays)
+	if err != nil {
+		return fmt.Errorf("unmarshal_claimed_days -> %w", err)
+	}
+
+	dayNo := helper.DayNoFromStartWeek(time.Now())
+	if v, ok := claimedDays[dayNo]; ok && v {
+		return nil
+	}
+	claimedDays[dayNo] = false
+
+	claimedDaysBytes, err := json.Marshal(claimedDays)
+	if err != nil {
+		return fmt.Errorf("marshal_claimed_days -> %w", err)
+	}
+
+	_, err = s.PlayerRepo.PlayerQueries.MarkDailySignInDays(ctx, playersqlc.MarkDailySignInDaysParams{
+		ID:          markDailySignInDaysParams.ID,
+		PlayerID:    markDailySignInDaysParams.PlayerID,
+		ClaimedDays: claimedDaysBytes,
+	})
+	if err != nil {
+		return fmt.Errorf("mark_daily_sign_in_days -> %w", err)
+	}
+
+	// TODO: End transaction
+
+	return nil
+}
+
+func (s *Player) UnlockDailySignIn(
+	ctx context.Context,
+	playerID string,
+	req *request.UnlockDailySignIn,
+) (*dto.PlayerChanges, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	weekId, err := dbc.ParseUUID(req.WeekID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string_week_id -> %w", err)
+	}
+
+	// TODO: Begin transaction?
+
+	getDailySignInByIDRow, err := s.PlayerRepo.PlayerQueries.GetDailySignInByID(
+		ctx,
+		playersqlc.GetDailySignInByIDParams{
+			ID:       weekId,
+			PlayerID: id,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get_daily_sign_in_by_player_id -> %w", err)
+	}
+
+	claimedDays := make(map[int]bool)
+	err = json.Unmarshal(getDailySignInByIDRow.ClaimedDays, &claimedDays)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshal_claimed_days -> %w", err)
+	}
+
+	claimedDays[req.DayNo] = false
+	claimedDaysBytes, err := json.Marshal(claimedDays)
+	if err != nil {
+		return nil, fmt.Errorf("marshal_claimed_days -> %w", err)
+	}
+
+	_, err = s.PlayerRepo.PlayerQueries.MarkDailySignInDays(ctx, playersqlc.MarkDailySignInDaysParams{
+		ID:          getDailySignInByIDRow.ID,
+		PlayerID:    id,
+		ClaimedDays: claimedDaysBytes,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("mark_daily_sign_in_days -> %w", err)
+	}
+
+	coinsCost := -temp.UnlockDailySignInCosts[req.DayNo]
+	player, err := s.updatePlayer(ctx, id, &dto.PlayerChanges{
+		Coins: &coinsCost,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("update_player -> %w", err)
+	}
+
+	// TODO: End transaction
+
+	return &dto.PlayerChanges{
+		Coins: &player.Coins,
+		Gems:  &player.Gems,
+	}, nil
+}
+
+func (s *Player) ClaimDailySignIn(ctx context.Context,
+	playerID string,
+	req *request.ClaimDailySignIn,
+) (*dto.PlayerChanges, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	weekId, err := dbc.ParseUUID(req.WeekID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string_week_id -> %w", err)
+	}
+
+	// TODO: Begin transaction?
+
+	getDailySignInByIDRow, err := s.PlayerRepo.PlayerQueries.GetDailySignInByID(
+		ctx,
+		playersqlc.GetDailySignInByIDParams{
+			ID:       weekId,
+			PlayerID: id,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get_daily_sign_in_by_player_id -> %w", err)
+	}
+
+	claimedDays := make(map[int]bool)
+	err = json.Unmarshal(getDailySignInByIDRow.ClaimedDays, &claimedDays)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshal_claimed_days -> %w", err)
+	}
+
+	claimedDays[req.DayNo] = true
+	claimedDaysBytes, err := json.Marshal(claimedDays)
+	if err != nil {
+		return nil, fmt.Errorf("marshal_claimed_days -> %w", err)
+	}
+
+	_, err = s.PlayerRepo.PlayerQueries.MarkDailySignInDays(ctx, playersqlc.MarkDailySignInDaysParams{
+		ID:          getDailySignInByIDRow.ID,
+		PlayerID:    id,
+		ClaimedDays: claimedDaysBytes,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("mark_daily_sign_in_days -> %w", err)
+	}
+
+	reward := temp.DailySignInRewards[req.DayNo]
+	player, err := s.updatePlayer(ctx, id, &dto.PlayerChanges{
+		Coins: &reward.Coins,
+		Gems:  &reward.Gems,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("update_player -> %w", err)
+	}
+
+	// TODO: End transaction
+
+	return &dto.PlayerChanges{
+		Coins: &player.Coins,
+		Gems:  &player.Gems,
 	}, nil
 }
 
@@ -280,7 +498,7 @@ func (s *Player) getPlayerData(player *playersqlc.GetPlayerByIDRow) (*dto.Player
 		return nil, fmt.Errorf("unmarshal_best_map -> %w", err)
 	}
 
-	var equippedProps []int
+	var equippedProps []int32
 	err = json.Unmarshal(player.EquippedProps, &equippedProps)
 	if err != nil {
 		return nil, fmt.Errorf("unmarshal_equipped_props -> %w", err)
@@ -288,16 +506,76 @@ func (s *Player) getPlayerData(player *playersqlc.GetPlayerByIDRow) (*dto.Player
 
 	return &dto.Player{
 		PlayerID: player.ID.String(),
-		Level:    int(player.Level),
-		EXP:      int(player.Exp),
-		Coins:    int(player.Coins),
-		Gems:     int(player.Gems),
+		Level:    player.Level,
+		EXP:      player.Exp,
+		Coins:    player.Coins,
+		Gems:     player.Gems,
 
 		BestMap: bestMap,
 
-		CurrentSkin:   int(player.CurrentSkin),
+		CurrentSkin:   player.CurrentSkin,
 		EquippedProps: equippedProps,
 	}, nil
+}
+
+func (s *Player) updatePlayer(ctx context.Context, id pgtype.UUID, changes *dto.PlayerChanges) (*dto.Player, error) {
+	// TODO: Begin transaction?
+
+	player, err := s.PlayerRepo.PlayerQueries.GetPlayerByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get_player_by_id -> %w", err)
+	}
+
+	if changes.Level != nil {
+		player.Level += *changes.Level
+	}
+	if changes.Exp != nil {
+		player.Exp += *changes.Exp
+
+		// TODO: make this configurable
+		if player.Exp > 100 {
+			player.Level += player.Exp / 100
+			player.Exp = player.Exp % 100
+		}
+	}
+	if changes.Coins != nil {
+		player.Coins += *changes.Coins
+	}
+	if changes.Gems != nil {
+		player.Gems += *changes.Gems
+	}
+	if changes.BestMap != nil {
+		bestMapBytes, err := json.Marshal(changes.BestMap)
+		if err != nil {
+			return nil, fmt.Errorf("marshal_best_map -> %w", err)
+		}
+		player.BestMap = bestMapBytes
+	}
+	if changes.CurrentSkin != nil {
+		player.CurrentSkin = *changes.CurrentSkin
+	}
+	if changes.EquippedProps != nil {
+		equippedPropsBytes, err := json.Marshal(changes.EquippedProps)
+		if err != nil {
+			return nil, fmt.Errorf("marshal_equipped_props -> %w", err)
+		}
+		player.EquippedProps = equippedPropsBytes
+	}
+
+	params := playersqlc.UpdatePlayerParams(player)
+	_, err = s.PlayerRepo.PlayerQueries.UpdatePlayer(ctx, params)
+	if err != nil {
+		return nil, fmt.Errorf("update_player -> %w", err)
+	}
+
+	player, err = s.PlayerRepo.PlayerQueries.GetPlayerByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get_player_by_id_after_update -> %w", err)
+	}
+
+	// TODO: End transaction
+
+	return s.getPlayerData(&player)
 }
 
 func (s *Player) calcNUpdateEnergy(
@@ -353,7 +631,7 @@ func (s *Player) getOrCreateDailySignInProgress(
 	playerID pgtype.UUID,
 ) (*playersqlc.MarkDailySignInDaysParams, error) {
 	createNewRow := false
-	weakStartAt := helper.WeekStartAt()
+	weekStartAt := helper.WeekStartAt(time.Now())
 
 	// TODO: Begin transaction?
 
@@ -362,7 +640,7 @@ func (s *Player) getOrCreateDailySignInProgress(
 		playersqlc.GetDailySignInByPlayerIDParams{
 			PlayerID: playerID,
 			WeekStartAt: pgtype.Timestamptz{
-				Time:  weakStartAt,
+				Time:  weekStartAt,
 				Valid: true,
 			},
 		},
@@ -381,7 +659,7 @@ func (s *Player) getOrCreateDailySignInProgress(
 			playersqlc.InitDailySignInParams{
 				PlayerID: playerID,
 				WeekStartAt: pgtype.Timestamptz{
-					Time:  weakStartAt,
+					Time:  weekStartAt,
 					Valid: true,
 				},
 			},

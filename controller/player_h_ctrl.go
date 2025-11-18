@@ -40,6 +40,13 @@ func (ctrl *PlayerH) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = ctrl.PlayerSvc.MarkDailySignIn(r.Context(), playerID)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_Get: Failed to mark daily sign-in")
+		unspecifiedErrorResponse(w)
+		return
+	}
+
 	successResponse(w, data)
 }
 
@@ -124,8 +131,6 @@ func (ctrl *PlayerH) GetTowerProgress(w http.ResponseWriter, r *http.Request) {
 	successResponse(w, data)
 }
 
-func (ctrl *PlayerH) ClaimTowerRewards(w http.ResponseWriter, r *http.Request) {}
-
 func (ctrl *PlayerH) GetChapterProgress(w http.ResponseWriter, r *http.Request) {
 	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
 	if !ok {
@@ -143,7 +148,33 @@ func (ctrl *PlayerH) GetChapterProgress(w http.ResponseWriter, r *http.Request) 
 
 	successResponse(w, data)
 }
-func (ctrl *PlayerH) ClaimChapterRewards(w http.ResponseWriter, r *http.Request) {}
+
+func (ctrl *PlayerH) ClaimChapterRewards(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_ClaimChapterRewards: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
+
+	var req request.ClaimChapterRewards
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_ClaimChapterRewards: Failed to decode request body")
+		badRequestResponse(w)
+		return
+	}
+	defer func() { _ = r.Body.Close() }()
+
+	data, err := ctrl.PlayerSvc.ClaimChapterRewards(r.Context(), playerID, &req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_ClaimChapterRewards: Failed to claim chapter rewards")
+		unspecifiedErrorResponse(w)
+		return
+	}
+
+	successResponse(w, data)
+}
 
 func (ctrl *PlayerH) GetDailySignInProgress(w http.ResponseWriter, r *http.Request) {
 	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
@@ -163,7 +194,59 @@ func (ctrl *PlayerH) GetDailySignInProgress(w http.ResponseWriter, r *http.Reque
 	successResponse(w, data)
 }
 
-func (ctrl *PlayerH) ClaimDailySignRewards(w http.ResponseWriter, r *http.Request) {}
+func (ctrl *PlayerH) UnlockDailySignIn(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_UnlockDailySignIn: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
+
+	var req request.UnlockDailySignIn
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_UnlockDailySignIn: Failed to decode request body")
+		badRequestResponse(w)
+		return
+	}
+	defer func() { _ = r.Body.Close() }()
+
+	data, err := ctrl.PlayerSvc.UnlockDailySignIn(r.Context(), playerID, &req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_UnlockDailySignIn: Failed to unlock daily sign-in")
+		unspecifiedErrorResponse(w)
+		return
+	}
+
+	successResponse(w, data)
+}
+
+func (ctrl *PlayerH) ClaimDailySignRewards(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_ClaimDailySignRewards: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
+
+	var req request.ClaimDailySignIn
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_ClaimDailySignRewards: Failed to decode request body")
+		badRequestResponse(w)
+		return
+	}
+	defer func() { _ = r.Body.Close() }()
+
+	data, err := ctrl.PlayerSvc.ClaimDailySignIn(r.Context(), playerID, &req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_ClaimDailySignRewards: Failed to claim daily sign-in rewards")
+		unspecifiedErrorResponse(w)
+		return
+	}
+
+	successResponse(w, data)
+}
 
 func (ctrl *PlayerH) GetDailyTaskProgress(w http.ResponseWriter, r *http.Request)  {}
 func (ctrl *PlayerH) ClaimDailyTaskRewards(w http.ResponseWriter, r *http.Request) {}

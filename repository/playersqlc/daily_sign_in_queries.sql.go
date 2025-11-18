@@ -11,6 +11,36 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getDailySignInByID = `-- name: GetDailySignInByID :one
+SELECT
+    id,
+    week_start_at,
+    claimed_days
+FROM
+    daily_sign_in
+WHERE
+    player_id = $1
+    AND id = $2
+`
+
+type GetDailySignInByIDParams struct {
+	PlayerID pgtype.UUID `db:"player_id" json:"player_id"`
+	ID       pgtype.UUID `db:"id" json:"id"`
+}
+
+type GetDailySignInByIDRow struct {
+	ID          pgtype.UUID        `db:"id" json:"id"`
+	WeekStartAt pgtype.Timestamptz `db:"week_start_at" json:"week_start_at"`
+	ClaimedDays []byte             `db:"claimed_days" json:"claimed_days"`
+}
+
+func (q *Queries) GetDailySignInByID(ctx context.Context, arg GetDailySignInByIDParams) (GetDailySignInByIDRow, error) {
+	row := q.db.QueryRow(ctx, getDailySignInByID, arg.PlayerID, arg.ID)
+	var i GetDailySignInByIDRow
+	err := row.Scan(&i.ID, &i.WeekStartAt, &i.ClaimedDays)
+	return i, err
+}
+
 const getDailySignInByPlayerID = `-- name: GetDailySignInByPlayerID :one
 SELECT
     id,

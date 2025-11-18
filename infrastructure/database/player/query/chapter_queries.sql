@@ -14,7 +14,8 @@ SELECT
 FROM
     chapter
 WHERE
-    player_id = $1;
+    player_id = $1 AND
+    chapter_id = $2;
 
 -- name: UpsertChapterProgressOnPlayer :one
 INSERT INTO

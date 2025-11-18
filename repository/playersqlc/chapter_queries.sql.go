@@ -53,16 +53,22 @@ SELECT
 FROM
     chapter
 WHERE
-    player_id = $1
+    player_id = $1 AND
+    chapter_id = $2
 `
+
+type GetChapterProgressByPlayerIDAndChapterIDParams struct {
+	PlayerID  pgtype.UUID `db:"player_id" json:"player_id"`
+	ChapterID int32       `db:"chapter_id" json:"chapter_id"`
+}
 
 type GetChapterProgressByPlayerIDAndChapterIDRow struct {
 	ChapterID          int32  `db:"chapter_id" json:"chapter_id"`
 	CheckedCheckpoints []byte `db:"checked_checkpoints" json:"checked_checkpoints"`
 }
 
-func (q *Queries) GetChapterProgressByPlayerIDAndChapterID(ctx context.Context, playerID pgtype.UUID) (GetChapterProgressByPlayerIDAndChapterIDRow, error) {
-	row := q.db.QueryRow(ctx, getChapterProgressByPlayerIDAndChapterID, playerID)
+func (q *Queries) GetChapterProgressByPlayerIDAndChapterID(ctx context.Context, arg GetChapterProgressByPlayerIDAndChapterIDParams) (GetChapterProgressByPlayerIDAndChapterIDRow, error) {
+	row := q.db.QueryRow(ctx, getChapterProgressByPlayerIDAndChapterID, arg.PlayerID, arg.ChapterID)
 	var i GetChapterProgressByPlayerIDAndChapterIDRow
 	err := row.Scan(&i.ChapterID, &i.CheckedCheckpoints)
 	return i, err

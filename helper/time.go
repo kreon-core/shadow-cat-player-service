@@ -2,8 +2,7 @@ package helper
 
 import "time"
 
-func WeekStartAt() time.Time {
-	now := time.Now()
+func WeekStartAt(now time.Time) time.Time {
 	year, week := now.ISOWeek()
 
 	loc := now.Location()
@@ -14,4 +13,8 @@ func WeekStartAt() time.Time {
 		isoStart = isoStart.AddDate(0, 0, -1)
 	}
 	return isoStart
+}
+
+func DayNoFromStartWeek(now time.Time) int {
+	return int(now.Weekday()+6) % 7
 }
