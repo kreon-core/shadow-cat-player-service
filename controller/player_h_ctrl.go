@@ -8,7 +8,7 @@ import (
 	"github.com/kreon-core/shadow-cat-common/logc"
 	"github.com/kreon-core/shadow-cat-common/resc"
 
-	"sc-player-service/constants"
+	"sc-player-service/helper"
 	"sc-player-service/model/api/response"
 	"sc-player-service/service"
 )
@@ -24,9 +24,9 @@ func NewPlayerH(playerSvc *service.Player) *PlayerH {
 }
 
 func (ctrl *PlayerH) Get(w http.ResponseWriter, r *http.Request) {
-	playerID, ok := ctxc.GetFromContext[string](r.Context(), constants.PlayerIDContextKey)
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
 	if !ok {
-		logc.Error().Msg("Unable to get player ID from context")
+		logc.Error().Msg("PlayerH_Get: Unable to get player ID from context")
 		resc.JSON(w, http.StatusUnauthorized, &response.Resp{
 			ReturnCode:    appc.EInvalidAccessToken,
 			ReturnMessage: appc.Message(appc.EInvalidAccessToken),
@@ -36,7 +36,11 @@ func (ctrl *PlayerH) Get(w http.ResponseWriter, r *http.Request) {
 
 	data, err := ctrl.PlayerSvc.GetOrCreatePlayer(r.Context(), playerID)
 	if err != nil {
-		http.Error(w, "failed to get or create player", http.StatusInternalServerError)
+		logc.Error().Err(err).Msg("PlayerH_Get: Failed to get or create player")
+		resc.JSON(w, http.StatusInternalServerError, &response.Resp{
+			ReturnCode:    appc.EDatabaseError,
+			ReturnMessage: appc.Message(appc.EDatabaseError),
+		})
 		return
 	}
 

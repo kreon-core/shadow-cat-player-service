@@ -8,7 +8,7 @@ import (
 	"github.com/kreon-core/shadow-cat-common/appc"
 	"github.com/kreon-core/shadow-cat-common/resc"
 
-	"sc-player-service/constants"
+	"sc-player-service/helper"
 	"sc-player-service/infrastructure/external"
 	"sc-player-service/model/api/dto"
 	"sc-player-service/model/api/response"
@@ -49,7 +49,7 @@ func (m *Auth) VerifyUser(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), constants.PlayerIDContextKey, data.UserID)
+		ctx := context.WithValue(r.Context(), helper.PlayerIDContextKey, data.UserID)
 
 		next.ServeHTTP(ww, r.WithContext(ctx))
 	})
