@@ -1,6 +1,6 @@
 package dto
 
-type DailySignProgress struct {
+type DailySignInProgress struct {
 	WeekNo     int         `json:"week_no"`
 	SignedDays []SignedDay `json:"signed_days"`
 }

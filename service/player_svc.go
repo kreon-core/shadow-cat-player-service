@@ -68,8 +68,7 @@ func (s *Player) GetOrCreatePlayer(ctx context.Context, playerID string) (*dto.P
 }
 
 func (s *Player) UpdatePlayer(
-	ctx context.Context,
-	playerID string,
+	ctx context.Context, playerID string,
 	updateData *request.UpdatePlayer,
 ) (*dto.Player, error) {
 	id, err := dbc.ParseUUID(playerID)
@@ -180,6 +179,56 @@ func (s *Player) GetInventory(ctx context.Context, playerID string) (*dto.Player
 	}, nil
 }
 
+func (s *Player) GetTowerProgress(ctx context.Context, playerID string) (*dto.TowerProgress, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	towerProgress, err := s.PlayerRepo.PlayerQueries.GetTowerProgressByPlayerID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get_tower_progress_by_player_id -> %w", err)
+	}
+
+	towerProgressData := &dto.TowerProgress{}
+	for _, tp := range towerProgress {
+		towerProgressData.Tower = append(towerProgressData.Tower, dto.Tower{
+			TowerID:      int(tp.TowerID),
+			Ticket:       int(tp.Ticket),
+			HighestFloor: int(tp.HighestFloor),
+		})
+	}
+
+	return towerProgressData, nil
+}
+
+func (s *Player) GetChapterProgress(ctx context.Context, playerID string) (*dto.ChapterProgress, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	chapterProgress, err := s.PlayerRepo.PlayerQueries.GetChapterProgressByPlayerID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get_chapter_progress_by_player_id -> %w", err)
+	}
+
+	chapterProgressData := &dto.ChapterProgress{}
+	for _, cp := range chapterProgress {
+		checkedCheckpoints := make(map[int]bool)
+		err := json.Unmarshal(cp.CheckedCheckpoints, &checkedCheckpoints)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshal_checked_checkpoints -> %w", err)
+		}
+		chapterProgressData.Chapters = append(chapterProgressData.Chapters, dto.Chapter{
+			ChapterID:          int(cp.ChapterID),
+			CheckedCheckpoints: checkedCheckpoints,
+		})
+	}
+
+	return chapterProgressData, nil
+}
+
 func (s *Player) newPlayer(id pgtype.UUID) (*playersqlc.CreateNewPlayerParams, error) {
 	bestMap := dto.BestMap{
 		MapID:      0,
@@ -208,10 +257,9 @@ func (s *Player) getPlayerData(player *playersqlc.GetPlayerByIDRow) (*dto.Player
 	}
 
 	var equippedProps []int
-	if len(player.EquippedProps) > 0 {
-		if err := json.Unmarshal(player.EquippedProps, &equippedProps); err != nil {
-			return nil, fmt.Errorf("unmarshal_equipped_props -> %w", err)
-		}
+	err = json.Unmarshal(player.EquippedProps, &equippedProps)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshal_equipped_props -> %w", err)
 	}
 
 	return &dto.Player{

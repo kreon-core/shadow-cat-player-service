@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS daily_shop;
 
 DROP TABLE IF EXISTS daily_task;
 
-DROP TABLE IF EXISTS daily_sign;
+DROP TABLE IF EXISTS daily_sign_in;
 
 DROP TABLE IF EXISTS chapter;
 

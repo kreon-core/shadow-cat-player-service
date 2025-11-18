@@ -70,11 +70,11 @@ CREATE TABLE chapter(
 );
 
 
-CREATE TABLE daily_sign(
+CREATE TABLE daily_sign_in(
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     player_id UUID NOT NULL REFERENCES player(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    week_no INT NOT NULL,
-    sign_ins JSONB NOT NULL DEFAULT '[]'::jsonb,
+
+    claimed BOOLEAN NOT NULL DEFAULT FALSE,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -83,6 +83,7 @@ CREATE TABLE daily_sign(
 CREATE TABLE daily_task (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     player_id UUID NOT NULL REFERENCES player(id) ON UPDATE CASCADE ON DELETE CASCADE,
+
     task_id INT NOT NULL,
     progress INT NOT NULL DEFAULT 0,
     claimed BOOLEAN NOT NULL DEFAULT FALSE,
@@ -95,7 +96,9 @@ CREATE TABLE daily_task (
 CREATE TABLE daily_shop(
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     player_id UUID NOT NULL REFERENCES player(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    purchased_items JSONB NOT NULL DEFAULT '[]'::jsonb,
+
+    item INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 0,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

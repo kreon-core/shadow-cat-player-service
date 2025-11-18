@@ -37,7 +37,7 @@ func (m *Auth) VerifyUser(next http.Handler) http.Handler {
 			http.MethodGet, m.AuthClient.Paths["verify-user"],
 			nil, headers)
 		if err != nil {
-			resc.JSON(w, http.StatusInternalServerError, &response.Resp{
+			resc.JSON(w, http.StatusBadRequest, &response.Resp{
 				ReturnCode:    appc.EExternalServiceError,
 				ReturnMessage: appc.Message(appc.EExternalServiceError),
 			})
