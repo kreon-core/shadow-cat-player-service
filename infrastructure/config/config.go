@@ -7,9 +7,10 @@ import (
 )
 
 type Config struct {
-	HTTP    HTTP    `mapstructure:"http"    validate:"required"`
-	DB      DB      `mapstructure:"db"      validate:"required"`
-	Secrets Secrets `mapstructure:"secrets" validate:"required"`
+	HTTP      HTTP      `mapstructure:"http"      validate:"required"`
+	Databases Databases `mapstructure:"databases" validate:"required"`
+	Secrets   Secrets   `mapstructure:"secrets"   validate:"required"`
+	Externals Externals `mapstructure:"externals" validate:"required"`
 }
 
 type HTTP struct {
@@ -21,10 +22,18 @@ type HTTP struct {
 	IdleTimeout       *time.Duration `mapstructure:"idle-timeout"`
 }
 
-type DB struct {
+type Databases struct {
 	Player dbc.PostgresConfig `mapstructure:"player" validate:"required"`
 }
 
 type Secrets struct {
 	JWTSecretKey string `mapstructure:"jwt-secret-key" validate:"required"`
+}
+
+type Externals struct {
+	AuthClient Client `mapstructure:"auth-client" validate:"required"`
+}
+type Client struct {
+	BaseURL string            `mapstructure:"base-url" validate:"required,url"`
+	Paths   map[string]string `mapstructure:"paths"    validate:"required"`
 }

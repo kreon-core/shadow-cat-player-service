@@ -15,7 +15,6 @@ import (
 	"github.com/kreon-core/shadow-cat-common/utlc"
 
 	"sc-player-service/infrastructure/config"
-	"sc-player-service/middleware"
 )
 
 const (
@@ -43,7 +42,7 @@ func NewHTTPServer(cfg *config.HTTP, container *Container) *HTTPServer {
 	r.Use(chiMW.RealIP)
 	r.Use(chiMW.RequestID)
 
-	r.Use(middleware.RequestLogger)
+	r.Use(mwc.RequestLogger)
 
 	r.Use(chiMW.Timeout(srvGatewayTimeout))
 

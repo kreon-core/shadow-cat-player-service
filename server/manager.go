@@ -29,7 +29,7 @@ type Manager struct {
 }
 
 func New(ctx context.Context, cfg *config.Config) (*Manager, error) {
-	playerDBPool, err := dbc.NewPostgresConnection(ctx, &cfg.DB.Player)
+	playerDBPool, err := dbc.NewPostgresConnection(ctx, &cfg.Databases.Player)
 	if err != nil {
 		return nil, fmt.Errorf("init_player_db -> %w", err)
 	}

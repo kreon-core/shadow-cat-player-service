@@ -1,12 +1,14 @@
 package controller
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/kreon-core/shadow-cat-common/appc"
 	"github.com/kreon-core/shadow-cat-common/ctxc"
+	"github.com/kreon-core/shadow-cat-common/logc"
+	"github.com/kreon-core/shadow-cat-common/resc"
 
+	"sc-player-service/constants"
 	"sc-player-service/model/api/response"
 	"sc-player-service/service"
 )
@@ -22,25 +24,27 @@ func NewPlayerH(playerSvc *service.Player) *PlayerH {
 }
 
 func (ctrl *PlayerH) Get(w http.ResponseWriter, r *http.Request) {
-	userID, ok := ctxc.GetFromContext[string](r.Context(), "user_id")
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), constants.PlayerIDContextKey)
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		logc.Error().Msg("Unable to get player ID from context")
+		resc.JSON(w, http.StatusUnauthorized, &response.Resp{
+			ReturnCode:    appc.EInvalidAccessToken,
+			ReturnMessage: appc.Message(appc.EInvalidAccessToken),
+		})
 		return
 	}
 
-	data, err := ctrl.PlayerSvc.GetOrCreatePlayer(r.Context(), userID)
+	data, err := ctrl.PlayerSvc.GetOrCreatePlayer(r.Context(), playerID)
 	if err != nil {
 		http.Error(w, "failed to get or create player", http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	resp := &response.Resp{
+	resc.JSON(w, http.StatusOK, &response.Resp{
 		ReturnCode:    appc.Success,
 		ReturnMessage: appc.Message(appc.Success),
 		Data:          data,
-	}
-	json.NewEncoder(w).Encode(resp)
+	})
 }
 
 func (ctrl *PlayerH) Update(w http.ResponseWriter, r *http.Request) {}

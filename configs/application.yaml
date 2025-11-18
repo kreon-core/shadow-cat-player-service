@@ -2,9 +2,15 @@ http:
   host: "localhost"
   port: 8080
 
-db:
+databases:
   player:
     dsn: "postgres://postgres:password@10.176.112.178:5432/scs_player?sslmode=disable&connect_timeout=5"
 
 secrets:
   jwt-secret-key: "your-jwt-secret-key"
+
+externals:
+  auth-client:
+    base-url: "http://localhost:8080"
+    paths:
+      verify-user: "/api/v1/user/verify"

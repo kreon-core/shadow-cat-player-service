@@ -7,7 +7,7 @@ require (
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/joho/godotenv v1.5.1
-	github.com/kreon-core/shadow-cat-common v0.0.31
+	github.com/kreon-core/shadow-cat-common v0.0.32
 	github.com/spf13/viper v1.21.0
 )
 

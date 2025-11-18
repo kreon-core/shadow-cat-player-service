@@ -7,11 +7,13 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kreon-core/shadow-cat-common/dbc"
 
 	"sc-player-service/model/api/dto"
 	"sc-player-service/repository"
 	"sc-player-service/repository/playersqlc"
+	"sc-player-service/temp"
 )
 
 type Player struct {
@@ -40,20 +42,9 @@ func (s *Player) GetOrCreatePlayer(ctx context.Context, playerID string) (*dto.P
 	}
 
 	if createPlayerIfNotExists {
-		bestMap := dto.BestMap{
-			MapID:      0,
-			TimeRecord: "00:00:00",
-		}
-		bestMapBytes, err := json.Marshal(bestMap)
+		newPlayer, err := s.newPlayer(id)
 		if err != nil {
-			return nil, fmt.Errorf("marshal_best_map -> %w", err)
-		}
-
-		newPlayer := &playersqlc.CreatePlayerParams{
-			ID:      id,
-			Coins:   100,
-			Gems:    10,
-			BestMap: bestMapBytes,
+			return nil, fmt.Errorf("create_new_player_struct -> %w", err)
 		}
 
 		err = s.PlayerRepo.CreatePlayer(ctx, newPlayer)
@@ -80,7 +71,7 @@ func (s *Player) GetOrCreatePlayer(ctx context.Context, playerID string) (*dto.P
 		}
 	}
 
-	result := &dto.Player{
+	return &dto.Player{
 		PlayerID: player.ID.String(),
 		Level:    int(player.Level),
 		EXP:      int(player.Exp),
@@ -91,7 +82,25 @@ func (s *Player) GetOrCreatePlayer(ctx context.Context, playerID string) (*dto.P
 
 		CurrentSkin:   int(player.CurrentSkin),
 		EquippedProps: equippedProps,
+	}, nil
+}
+
+func (s *Player) newPlayer(id pgtype.UUID) (*playersqlc.CreatePlayerParams, error) {
+	bestMap := dto.BestMap{
+		MapID:      0,
+		TimeRecord: "00:00:00",
+	}
+	bestMapBytes, err := json.Marshal(bestMap)
+	if err != nil {
+		return nil, fmt.Errorf("marshal_best_map -> %w", err)
 	}
 
-	return result, nil
+	return &playersqlc.CreatePlayerParams{
+		ID:            id,
+		Coins:         temp.BasicCoins,
+		Gems:          temp.BasicGems,
+		CurrentEnergy: temp.BasicEnergy,
+		MaxEnergy:     temp.BasicEnergy,
+		BestMap:       bestMapBytes,
+	}, nil
 }

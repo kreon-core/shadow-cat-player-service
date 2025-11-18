@@ -8,6 +8,7 @@ import (
 func LoadRoutes(container *Container) func(r chi.Router) {
 	return func(r chi.Router) {
 		r.Use(chiMW.AllowContentType("application/json"))
+		r.Use(container.AuthMW.VerifyUser)
 		r.Route("/player", func(r chi.Router) {
 			r.Get("/", container.PlayerHCtrl.Get)
 			r.Put("/", container.PlayerHCtrl.Update)
