@@ -36,14 +36,14 @@ func (ctrl *PlayerH) Get(w http.ResponseWriter, r *http.Request) {
 	data, err := ctrl.PlayerSvc.GetOrCreatePlayer(r.Context(), playerID)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_Get: Failed to get or create player")
-		unspecifiedErrorResponse(w)
+		unspecifiedErrorResponse(w, err)
 		return
 	}
 
 	err = ctrl.PlayerSvc.MarkDailySignIn(r.Context(), playerID)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_Get: Failed to mark daily sign-in")
-		unspecifiedErrorResponse(w)
+		unspecifiedErrorResponse(w, err)
 		return
 	}
 
@@ -70,7 +70,7 @@ func (ctrl *PlayerH) Update(w http.ResponseWriter, r *http.Request) {
 	data, err := ctrl.PlayerSvc.UpdatePlayer(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_Update: Failed to update player")
-		unspecifiedErrorResponse(w)
+		unspecifiedErrorResponse(w, err)
 		return
 	}
 
@@ -88,7 +88,7 @@ func (ctrl *PlayerH) GetEnergy(w http.ResponseWriter, r *http.Request) {
 	data, err := ctrl.PlayerSvc.GetEnergy(r.Context(), playerID)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_GetEnergy: Failed to get player energy")
-		unspecifiedErrorResponse(w)
+		unspecifiedErrorResponse(w, err)
 		return
 	}
 
@@ -106,7 +106,7 @@ func (ctrl *PlayerH) GetInventory(w http.ResponseWriter, r *http.Request) {
 	data, err := ctrl.PlayerSvc.GetInventory(r.Context(), playerID)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_GetInventory: Failed to get player inventory")
-		unspecifiedErrorResponse(w)
+		unspecifiedErrorResponse(w, err)
 		return
 	}
 
@@ -124,7 +124,7 @@ func (ctrl *PlayerH) GetTowerProgress(w http.ResponseWriter, r *http.Request) {
 	data, err := ctrl.PlayerSvc.GetTowerProgress(r.Context(), playerID)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_GetTowerProgress: Failed to get player tower progress")
-		unspecifiedErrorResponse(w)
+		unspecifiedErrorResponse(w, err)
 		return
 	}
 
@@ -142,7 +142,7 @@ func (ctrl *PlayerH) GetChapterProgress(w http.ResponseWriter, r *http.Request) 
 	data, err := ctrl.PlayerSvc.GetChapterProgress(r.Context(), playerID)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_GetChapterProgress: Failed to get player chapter progress")
-		unspecifiedErrorResponse(w)
+		unspecifiedErrorResponse(w, err)
 		return
 	}
 
@@ -169,7 +169,7 @@ func (ctrl *PlayerH) ClaimChapterRewards(w http.ResponseWriter, r *http.Request)
 	data, err := ctrl.PlayerSvc.ClaimChapterRewards(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_ClaimChapterRewards: Failed to claim chapter rewards")
-		unspecifiedErrorResponse(w)
+		unspecifiedErrorResponse(w, err)
 		return
 	}
 
@@ -187,7 +187,7 @@ func (ctrl *PlayerH) GetDailySignInProgress(w http.ResponseWriter, r *http.Reque
 	data, err := ctrl.PlayerSvc.GetDailySignInProgress(r.Context(), playerID)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_GetDailySignInProgress: Failed to get player daily sign-in progress")
-		unspecifiedErrorResponse(w)
+		unspecifiedErrorResponse(w, err)
 		return
 	}
 
@@ -214,7 +214,7 @@ func (ctrl *PlayerH) UnlockDailySignIn(w http.ResponseWriter, r *http.Request) {
 	data, err := ctrl.PlayerSvc.UnlockDailySignIn(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_UnlockDailySignIn: Failed to unlock daily sign-in")
-		unspecifiedErrorResponse(w)
+		unspecifiedErrorResponse(w, err)
 		return
 	}
 
@@ -241,7 +241,7 @@ func (ctrl *PlayerH) ClaimDailySignRewards(w http.ResponseWriter, r *http.Reques
 	data, err := ctrl.PlayerSvc.ClaimDailySignIn(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_ClaimDailySignRewards: Failed to claim daily sign-in rewards")
-		unspecifiedErrorResponse(w)
+		unspecifiedErrorResponse(w, err)
 		return
 	}
 
@@ -259,7 +259,7 @@ func (ctrl *PlayerH) GetDailyTaskProgress(w http.ResponseWriter, r *http.Request
 	data, err := ctrl.PlayerSvc.GetDailyTaskProgress(r.Context(), playerID)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_GetDailyTaskProgress: Failed to get player daily task progress")
-		unspecifiedErrorResponse(w)
+		unspecifiedErrorResponse(w, err)
 		return
 	}
 
@@ -286,7 +286,7 @@ func (ctrl *PlayerH) ClaimDailyTaskRewards(w http.ResponseWriter, r *http.Reques
 	data, err := ctrl.PlayerSvc.ClaimDailyTask(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_ClaimDailyTaskRewards: Failed to claim daily task rewards")
-		unspecifiedErrorResponse(w)
+		unspecifiedErrorResponse(w, err)
 		return
 	}
 
@@ -313,19 +313,19 @@ func (ctrl *PlayerH) ExchangeGemsForCoins(w http.ResponseWriter, r *http.Request
 	data, err := ctrl.PlayerSvc.ExchangeGemsForCoins(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_ExchangeGemsForCoins: Failed to exchange gems for coins")
-		unspecifiedErrorResponse(w)
+		unspecifiedErrorResponse(w, err)
 		return
 	}
 
 	successResponse(w, data)
 }
 
-func (ctrl *PlayerH) GetDailyShopProgress(w http.ResponseWriter, r *http.Request)   {}
-func (ctrl *PlayerH) PurchaseDailyShopItems(w http.ResponseWriter, r *http.Request) {}
-
 func (ctrl *PlayerH) StartBattle(w http.ResponseWriter, r *http.Request)   {}
+
 func (ctrl *PlayerH) ResumeBattle(w http.ResponseWriter, r *http.Request)  {}
+
 func (ctrl *PlayerH) BuyBattleLife(w http.ResponseWriter, r *http.Request) {}
+
 func (ctrl *PlayerH) ExitBattle(w http.ResponseWriter, r *http.Request)    {}
 
 func unauthorizedResponse(w http.ResponseWriter) {
@@ -342,10 +342,10 @@ func badRequestResponse(w http.ResponseWriter) {
 	})
 }
 
-func unspecifiedErrorResponse(w http.ResponseWriter) {
+func unspecifiedErrorResponse(w http.ResponseWriter, err error) {
 	resc.JSON(w, http.StatusBadRequest, &response.Resp{
 		ReturnCode:    appc.UUnspecifiedError,
-		ReturnMessage: appc.Message(appc.UUnspecifiedError),
+		ReturnMessage: err.Error(), // TODO: change to hide sql error, appc.Message(appc.UUnspecifiedError),
 	})
 }
 
