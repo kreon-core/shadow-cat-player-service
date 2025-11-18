@@ -74,10 +74,13 @@ CREATE TABLE daily_sign_in(
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     player_id UUID NOT NULL REFERENCES player(id) ON UPDATE CASCADE ON DELETE CASCADE,
 
-    claimed BOOLEAN NOT NULL DEFAULT FALSE,
+    week_start_at TIMESTAMPTZ NOT NULL,
+    claimed_days JSONB NOT NULL DEFAULT '{}'::jsonb,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    UNIQUE(player_id, week_start_at)
 );
 
 CREATE TABLE daily_task (

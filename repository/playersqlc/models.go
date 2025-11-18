@@ -17,20 +17,21 @@ type Chapter struct {
 }
 
 type DailyShop struct {
-	ID             pgtype.UUID        `db:"id" json:"id"`
-	PlayerID       pgtype.UUID        `db:"player_id" json:"player_id"`
-	PurchasedItems []byte             `db:"purchased_items" json:"purchased_items"`
-	CreatedAt      pgtype.Timestamptz `db:"created_at" json:"created_at"`
-	UpdatedAt      pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
-}
-
-type DailySign struct {
 	ID        pgtype.UUID        `db:"id" json:"id"`
 	PlayerID  pgtype.UUID        `db:"player_id" json:"player_id"`
-	WeekNo    int32              `db:"week_no" json:"week_no"`
-	SignIns   []byte             `db:"sign_ins" json:"sign_ins"`
+	Item      int32              `db:"item" json:"item"`
+	Quantity  int32              `db:"quantity" json:"quantity"`
 	CreatedAt pgtype.Timestamptz `db:"created_at" json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+}
+
+type DailySignIn struct {
+	ID          pgtype.UUID        `db:"id" json:"id"`
+	PlayerID    pgtype.UUID        `db:"player_id" json:"player_id"`
+	WeekStartAt pgtype.Timestamptz `db:"week_start_at" json:"week_start_at"`
+	ClaimedDays []byte             `db:"claimed_days" json:"claimed_days"`
+	CreatedAt   pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
 }
 
 type DailyTask struct {
