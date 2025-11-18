@@ -9,7 +9,6 @@ import (
 type Config struct {
 	HTTP      HTTP      `mapstructure:"http"      validate:"required"`
 	Databases Databases `mapstructure:"databases" validate:"required"`
-	Secrets   Secrets   `mapstructure:"secrets"   validate:"required"`
 	Externals Externals `mapstructure:"externals" validate:"required"`
 }
 
@@ -25,11 +24,6 @@ type HTTP struct {
 type Databases struct {
 	Player dbc.PostgresConfig `mapstructure:"player" validate:"required"`
 }
-
-type Secrets struct {
-	JWTSecretKey string `mapstructure:"jwt-secret-key" validate:"required"`
-}
-
 type Externals struct {
 	AuthClient Client `mapstructure:"auth-client" validate:"required"`
 }

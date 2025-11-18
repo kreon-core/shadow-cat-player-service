@@ -6,9 +6,6 @@ databases:
   player:
     dsn: "postgres://postgres:password@localhost:5432/scs_player?sslmode=disable&connect_timeout=5"
 
-secrets:
-  jwt-secret-key: "your-jwt-secret-key"
-
 externals:
   auth-client:
     base-url: "http://localhost:8080"
