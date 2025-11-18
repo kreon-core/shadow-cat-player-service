@@ -1,4 +1,4 @@
 - INSTALL GO TOOLS -- `make dev-setup`
 - MIGRATE DATABASE -- `make migrate-player-up`
-- ENV `HTTP_PORT=8081` for player service, `HTTP_PORT=8080` for auth service
+- ENV `.env` with `HTTP_PORT=8081` for player service, `HTTP_PORT=8080` for auth service
 - RUN -- `make dev`
