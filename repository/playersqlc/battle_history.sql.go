@@ -20,7 +20,7 @@ SET completed_at = NOW(),
     updated_at = NOW()
 WHERE id = $1
     AND completed_at IS NULL
-RETURNING id, player_id, game_mode, tower_id, floor, map_id, completed_at, time_survived, monster_kills, total_damage_dealt, created_at, updated_at
+RETURNING id, player_id, game_mode, tower_id, floor, map_id, completed_at, exited_at, time_survived, monster_kills, total_damage_dealt, created_at, updated_at
 `
 
 type CompleteBattleHistoryParams struct {
@@ -46,6 +46,7 @@ func (q *Queries) CompleteBattleHistory(ctx context.Context, arg CompleteBattleH
 		&i.Floor,
 		&i.MapID,
 		&i.CompletedAt,
+		&i.ExitedAt,
 		&i.TimeSurvived,
 		&i.MonsterKills,
 		&i.TotalDamageDealt,
@@ -55,8 +56,21 @@ func (q *Queries) CompleteBattleHistory(ctx context.Context, arg CompleteBattleH
 	return i, err
 }
 
+const exitBattleHistory = `-- name: ExitBattleHistory :exec
+UPDATE battle_history
+SET exited_at = NOW(),
+    updated_at = NOW()
+WHERE id = $1
+    AND completed_at IS NULL
+`
+
+func (q *Queries) ExitBattleHistory(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, exitBattleHistory, id)
+	return err
+}
+
 const getBattleHistoryByID = `-- name: GetBattleHistoryByID :one
-SELECT id, player_id, game_mode, tower_id, floor, map_id, completed_at, time_survived, monster_kills, total_damage_dealt, created_at, updated_at
+SELECT id, player_id, game_mode, tower_id, floor, map_id, completed_at, exited_at, time_survived, monster_kills, total_damage_dealt, created_at, updated_at
 FROM battle_history
 WHERE id = $1
 `
@@ -72,6 +86,7 @@ func (q *Queries) GetBattleHistoryByID(ctx context.Context, id pgtype.UUID) (Bat
 		&i.Floor,
 		&i.MapID,
 		&i.CompletedAt,
+		&i.ExitedAt,
 		&i.TimeSurvived,
 		&i.MonsterKills,
 		&i.TotalDamageDealt,
@@ -88,7 +103,7 @@ ON CONFLICT (player_id)
     WHERE completed_at IS NULL
 DO UPDATE SET
     updated_at = NOW()
-RETURNING id, player_id, game_mode, tower_id, floor, map_id, completed_at, time_survived, monster_kills, total_damage_dealt, created_at, updated_at
+RETURNING id, player_id, game_mode, tower_id, floor, map_id, completed_at, exited_at, time_survived, monster_kills, total_damage_dealt, created_at, updated_at
 `
 
 type UpsertBattleHistoryParams struct {
@@ -116,6 +131,7 @@ func (q *Queries) UpsertBattleHistory(ctx context.Context, arg UpsertBattleHisto
 		&i.Floor,
 		&i.MapID,
 		&i.CompletedAt,
+		&i.ExitedAt,
 		&i.TimeSurvived,
 		&i.MonsterKills,
 		&i.TotalDamageDealt,

@@ -16,6 +16,7 @@ type Querier interface {
 	CompleteBattleHistory(ctx context.Context, arg CompleteBattleHistoryParams) (BattleHistory, error)
 	ConsumeTowerTicketsFromPlayer(ctx context.Context, arg ConsumeTowerTicketsFromPlayerParams) (ConsumeTowerTicketsFromPlayerRow, error)
 	CreateNewPlayer(ctx context.Context, arg CreateNewPlayerParams) (CreateNewPlayerRow, error)
+	ExitBattleHistory(ctx context.Context, id pgtype.UUID) error
 	GetBattleHistoryByID(ctx context.Context, id pgtype.UUID) (BattleHistory, error)
 	GetChapterProgressByPlayerID(ctx context.Context, playerID pgtype.UUID) ([]GetChapterProgressByPlayerIDRow, error)
 	GetChapterProgressByPlayerIDAndChapterID(ctx context.Context, arg GetChapterProgressByPlayerIDAndChapterIDParams) (GetChapterProgressByPlayerIDAndChapterIDRow, error)

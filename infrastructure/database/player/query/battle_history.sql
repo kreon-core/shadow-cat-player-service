@@ -22,3 +22,10 @@ SET completed_at = NOW(),
 WHERE id = $1
     AND completed_at IS NULL
 RETURNING *;
+
+-- name: ExitBattleHistory :exec
+UPDATE battle_history
+SET exited_at = NOW(),
+    updated_at = NOW()
+WHERE id = $1
+    AND completed_at IS NULL;

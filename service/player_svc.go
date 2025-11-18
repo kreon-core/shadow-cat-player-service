@@ -406,7 +406,7 @@ func (s *Player) UnlockDailySignIn(
 	}, nil
 }
 
-func (s *Player) ClaimDailySignIn(ctx context.Context,
+func (s *Player) ClaimDailySignInRewards(ctx context.Context,
 	playerID string,
 	req *request.ClaimDailySignIn,
 ) (*dto.PlayerChanges, error) {
@@ -694,6 +694,25 @@ func (s *Player) CompleteBattle(
 		Gems:  &updatedPlayerChanges.Gems,
 		Props: &req.BattleResult.Props,
 	}, nil
+}
+
+func (s *Player) ExitBattle(ctx context.Context, playerID string, req *request.ExitBattle) error {
+	_, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	battleID, err := dbc.ParseUUID(req.BattleID)
+	if err != nil {
+		return fmt.Errorf("parse_uuid_string_battle_id -> %w", err)
+	}
+
+	err = s.PlayerRepo.PlayerQueries.ExitBattleHistory(ctx, battleID)
+	if err != nil {
+		return fmt.Errorf("exit_battle -> %w", err)
+	}
+
+	return nil
 }
 
 func (s *Player) newPlayer(id pgtype.UUID) (*playersqlc.CreateNewPlayerParams, error) {

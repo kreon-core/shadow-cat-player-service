@@ -16,6 +16,7 @@ type BattleHistory struct {
 	Floor            pgtype.Int4        `db:"floor" json:"floor"`
 	MapID            pgtype.Int4        `db:"map_id" json:"map_id"`
 	CompletedAt      pgtype.Timestamptz `db:"completed_at" json:"completed_at"`
+	ExitedAt         pgtype.Timestamptz `db:"exited_at" json:"exited_at"`
 	TimeSurvived     int32              `db:"time_survived" json:"time_survived"`
 	MonsterKills     int32              `db:"monster_kills" json:"monster_kills"`
 	TotalDamageDealt int32              `db:"total_damage_dealt" json:"total_damage_dealt"`

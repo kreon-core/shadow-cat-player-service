@@ -221,7 +221,7 @@ func (ctrl *PlayerH) UnlockDailySignIn(w http.ResponseWriter, r *http.Request) {
 	successResponse(w, data)
 }
 
-func (ctrl *PlayerH) ClaimDailySignRewards(w http.ResponseWriter, r *http.Request) {
+func (ctrl *PlayerH) ClaimDailySignInRewards(w http.ResponseWriter, r *http.Request) {
 	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
 	if !ok {
 		logc.Error().Msg("PlayerH_ClaimDailySignRewards: Unable to get player ID from context")
@@ -238,7 +238,7 @@ func (ctrl *PlayerH) ClaimDailySignRewards(w http.ResponseWriter, r *http.Reques
 	}
 	defer func() { _ = r.Body.Close() }()
 
-	data, err := ctrl.PlayerSvc.ClaimDailySignIn(r.Context(), playerID, &req)
+	data, err := ctrl.PlayerSvc.ClaimDailySignInRewards(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_ClaimDailySignRewards: Failed to claim daily sign-in rewards")
 		unspecifiedErrorResponse(w, err)
@@ -390,6 +390,33 @@ func (ctrl *PlayerH) CompleteBattle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	successResponse(w, data)
+}
+
+func (ctrl *PlayerH) ExitBattle(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_ExitBattle: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
+
+	var req request.ExitBattle
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_ExitBattle: Failed to decode request body")
+		badRequestResponse(w)
+		return
+	}
+	defer func() { _ = r.Body.Close() }()
+
+	err = ctrl.PlayerSvc.ExitBattle(r.Context(), playerID, &req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_ExitBattle: Failed to exit battle")
+		unspecifiedErrorResponse(w, err)
+		return
+	}
+
+	successResponse(w, nil)
 }
 
 func unauthorizedResponse(w http.ResponseWriter) {

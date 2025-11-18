@@ -17,8 +17,23 @@ func LoadRoutes(container *Container) func(r chi.Router) {
 			r.Get("/inventory", container.PlayerHCtrl.GetInventory)
 
 			r.Get("/tower-progress", container.PlayerHCtrl.GetTowerProgress)
-			r.Get("/daily-task-progress", container.PlayerHCtrl.GetDailyTaskProgress)
+
 			r.Get("/chapter-progress", container.PlayerHCtrl.GetChapterProgress)
+			r.Post("/claim-chapter-checkpoint", container.PlayerHCtrl.ClaimChapterRewards)
+
+			r.Get("/daily-sign-in-progress", container.PlayerHCtrl.GetDailySignInProgress)
+			r.Post("/unlock-daily-sign-in-bonus", container.PlayerHCtrl.UnlockDailySignIn)
+			r.Post("/claim-daily-sign-in-rewards", container.PlayerHCtrl.ClaimDailySignInRewards)
+
+			r.Get("/daily-tasks-progress", container.PlayerHCtrl.GetDailyTaskProgress)
+			r.Post("/claim-daily-tasks-rewards", container.PlayerHCtrl.ClaimDailyTaskRewards)
+
+			r.Post("/exchange-currency", container.PlayerHCtrl.ExchangeGemsForCoins)
+
+			r.Post("/start-battle", container.PlayerHCtrl.StartBattle)
+			r.Post("/resume-battle", container.PlayerHCtrl.ResumeBattle)
+			r.Post("/complete-battle", container.PlayerHCtrl.CompleteBattle)
+			r.Post("/exit-battle", container.PlayerHCtrl.ExitBattle)
 		})
 	}
 }

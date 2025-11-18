@@ -122,9 +122,10 @@ CREATE TABLE battle_history(
     floor INT,
     map_id INT,
     completed_at TIMESTAMPTZ,
-    time_survived INT NOT NULL,
-    monster_kills INT NOT NULL,
-    total_damage_dealt INT NOT NULL,
+    exited_at TIMESTAMPTZ,
+    time_survived INT NOT NULL DEFAULT 0,
+    monster_kills INT NOT NULL DEFAULT 0,
+    total_damage_dealt INT NOT NULL DEFAULT 0,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

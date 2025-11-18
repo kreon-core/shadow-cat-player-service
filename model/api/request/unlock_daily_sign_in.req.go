@@ -1,6 +1,6 @@
 package request
 
 type UnlockDailySignIn struct {
-	WeekID string `json:"week_id" binding:"required"`
-	DayNo  int    `json:"day_no"  binding:"required,min=0,max=6"`
+	WeekID string `json:"week_id" validate:"required"`
+	DayNo  int    `json:"day_no"  validate:"required,min=0,max=6"`
 }
