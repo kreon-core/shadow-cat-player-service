@@ -249,6 +249,7 @@ func (ctrl *PlayerH) ClaimDailySignRewards(w http.ResponseWriter, r *http.Reques
 }
 
 func (ctrl *PlayerH) GetDailyTaskProgress(w http.ResponseWriter, r *http.Request)  {}
+
 func (ctrl *PlayerH) ClaimDailyTaskRewards(w http.ResponseWriter, r *http.Request) {}
 
 func (ctrl *PlayerH) GetDailyShopProgress(w http.ResponseWriter, r *http.Request)   {}

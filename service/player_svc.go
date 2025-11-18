@@ -390,7 +390,7 @@ func (s *Player) UnlockDailySignIn(
 		return nil, fmt.Errorf("mark_daily_sign_in_days -> %w", err)
 	}
 
-	coinsCost := -temp.UnlockDailySignInCosts[req.DayNo]
+	coinsCost := -temp.UnlockDailySignInCoinsCost[req.DayNo]
 	player, err := s.updatePlayer(ctx, id, &dto.PlayerChanges{
 		Coins: &coinsCost,
 	})

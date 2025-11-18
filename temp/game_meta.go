@@ -21,8 +21,8 @@ type Reward struct {
 }
 
 var (
-	UnlockDailySignInCosts = []int32{100, 500, 1000, 1500, 2000, 2500, 3000}
-	DailySignInRewards     = []Reward{
+	UnlockDailySignInCoinsCost = []int32{100, 500, 1000, 1500, 2000, 2500, 3000}
+	DailySignInRewards         = []Reward{
 		{Coins: 1000, Gems: 10},
 		{Coins: 2000, Gems: 15},
 		{Coins: 3000, Gems: 20},
