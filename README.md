@@ -1,0 +1,3 @@
+- INSTALL GO TOOLS -- `make dev-setup`
+- MIGRATE DATABASE -- `make migrate-player-up`
+- RUN -- `make dev`
