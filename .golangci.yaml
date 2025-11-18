@@ -83,6 +83,9 @@ linters:
     - whitespace
     - zerologlint # detects the wrong usage of zerolog that a user forgets to dispatch zerolog.Event
 
+  disable:
+    - dupl
+
     ## you may want to enable
     # - arangolint # opinionated best practices for arangodb client
     # - decorder # checks declaration order and count of types, constants, variables and functions
