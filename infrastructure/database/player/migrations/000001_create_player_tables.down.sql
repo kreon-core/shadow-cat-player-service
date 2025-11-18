@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS battle_history;
+
 DROP TABLE IF EXISTS daily_shop;
 
 DROP TABLE IF EXISTS daily_task;

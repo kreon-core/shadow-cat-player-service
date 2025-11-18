@@ -584,10 +584,122 @@ func (s *Player) ExchangeGemsForCoins(
 	}, nil
 }
 
+func (s *Player) StartBattle(
+	ctx context.Context,
+	playerID string,
+	req *request.StartBattle,
+) (*dto.BattleData, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	if req.MapID == nil && req.TowerID == nil {
+		return nil, errors.New("either_map_id_or_tower_id_must_be_provided")
+	}
+
+	if req.MapID != nil && req.TowerID != nil {
+		return nil, errors.New("only_one_of_map_id_or_tower_id_can_be_provided")
+	}
+
+	updateBattleHistoryParams := playersqlc.UpsertBattleHistoryParams{
+		PlayerID: id,
+		GameMode: req.GameMode,
+	}
+	if req.TowerID != nil {
+		updateBattleHistoryParams.TowerID = pgtype.Int4{
+			Int32: *req.TowerID,
+			Valid: true,
+		}
+	}
+	if req.Floor != nil {
+		updateBattleHistoryParams.Floor = pgtype.Int4{
+			Int32: *req.Floor,
+			Valid: true,
+		}
+	}
+	if req.MapID != nil {
+		updateBattleHistoryParams.MapID = pgtype.Int4{
+			Int32: *req.MapID,
+			Valid: true,
+		}
+	}
+
+	battleHistory, err := s.PlayerRepo.PlayerQueries.UpsertBattleHistory(
+		ctx, updateBattleHistoryParams,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("upsert_battle_history -> %w", err)
+	}
+
+	return &dto.BattleData{
+		BattleID: battleHistory.ID.String(),
+	}, nil
+}
+
+func (s *Player) ResumeBattle(ctx context.Context, battleID string) (*dto.BattleData, error) {
+	id, err := dbc.ParseUUID(battleID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	battleHistory, err := s.PlayerRepo.PlayerQueries.GetBattleHistoryByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get_battle_history_by_id -> %w", err)
+	}
+
+	return &dto.BattleData{
+		BattleID: battleHistory.ID.String(),
+	}, nil
+}
+
+func (s *Player) CompleteBattle(
+	ctx context.Context,
+	playerID string,
+	req *request.CompleteBattle,
+) (*dto.PlayerChanges, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	battleHistory, err := s.PlayerRepo.PlayerQueries.CompleteBattleHistory(
+		ctx,
+		playersqlc.CompleteBattleHistoryParams{
+			ID:               id,
+			TimeSurvived:     req.BattleResult.TimeSurvived,
+			MonsterKills:     req.BattleResult.MonsterKills,
+			TotalDamageDealt: req.BattleResult.TotalDamageDealt,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("complete_battle -> %w", err)
+	}
+
+	playerChanges := &dto.PlayerChanges{
+		Exp:   &req.BattleResult.HeroEXP,
+		Coins: &req.BattleResult.CoinsCollected,
+		Gems:  &req.BattleResult.GemsCollected,
+		Props: &req.BattleResult.Props,
+	}
+	updatedPlayerChanges, err := s.updatePlayer(ctx, battleHistory.PlayerID, playerChanges)
+	if err != nil {
+		return nil, fmt.Errorf("update_player -> %w", err)
+	}
+
+	return &dto.PlayerChanges{
+		Level: &updatedPlayerChanges.Level,
+		Exp:   &updatedPlayerChanges.EXP,
+		Coins: &updatedPlayerChanges.Coins,
+		Gems:  &updatedPlayerChanges.Gems,
+		Props: &req.BattleResult.Props,
+	}, nil
+}
+
 func (s *Player) newPlayer(id pgtype.UUID) (*playersqlc.CreateNewPlayerParams, error) {
 	bestMap := dto.BestMap{
 		MapID:      0,
-		TimeRecord: "00:00:00",
+		TimeRecord: 0,
 	}
 	bestMapBytes, err := json.Marshal(bestMap)
 	if err != nil {
@@ -631,6 +743,7 @@ func (s *Player) getPlayerData(player *playersqlc.GetPlayerByIDRow) (*dto.Player
 	}, nil
 }
 
+//nolint:funlen // function length is acceptable
 func (s *Player) updatePlayer(ctx context.Context, id pgtype.UUID, changes *dto.PlayerChanges) (*dto.Player, error) {
 	// TODO: Begin transaction?
 
@@ -652,9 +765,9 @@ func (s *Player) updatePlayer(ctx context.Context, id pgtype.UUID, changes *dto.
 		}
 
 		// TODO: make this configurable
-		if player.Exp > 100 {
-			player.Level += player.Exp / 100
-			player.Exp = player.Exp % 100
+		if player.Exp > temp.LevelUpExpNeeded {
+			player.Level += player.Exp / temp.LevelUpExpNeeded
+			player.Exp %= temp.LevelUpExpNeeded
 		}
 	}
 	if changes.Coins != nil {
@@ -686,6 +799,12 @@ func (s *Player) updatePlayer(ctx context.Context, id pgtype.UUID, changes *dto.
 		}
 		player.EquippedProps = equippedPropsBytes
 	}
+	if changes.Props != nil {
+		err = s.updatePropsInventory(ctx, id, *changes.Props)
+		if err != nil {
+			return nil, fmt.Errorf("update_props_inventory -> %w", err)
+		}
+	}
 
 	params := playersqlc.UpdatePlayerParams(player)
 	_, err = s.PlayerRepo.PlayerQueries.UpdatePlayer(ctx, params)
@@ -701,6 +820,45 @@ func (s *Player) updatePlayer(ctx context.Context, id pgtype.UUID, changes *dto.
 	// TODO: End transaction
 
 	return s.getPlayerData(&player)
+}
+
+func (s *Player) updatePropsInventory(
+	ctx context.Context,
+	playerID pgtype.UUID,
+	newProps []dto.Prop,
+) error {
+	newPropMap := []struct {
+		PlayerID     pgtype.UUID `json:"player_id"`
+		ConfigPropID int         `json:"config_prop_id"`
+		Level        int         `json:"level"`
+		Quantity     int         `json:"quantity"`
+	}{}
+
+	for _, p := range newProps {
+		newPropMap = append(newPropMap, struct {
+			PlayerID     pgtype.UUID `json:"player_id"`
+			ConfigPropID int         `json:"config_prop_id"`
+			Level        int         `json:"level"`
+			Quantity     int         `json:"quantity"`
+		}{
+			PlayerID:     playerID,
+			ConfigPropID: p.ConfigPropID,
+			Level:        p.Level,
+			Quantity:     p.Quantity,
+		})
+	}
+
+	newPropMapBytes, err := json.Marshal(newPropMap)
+	if err != nil {
+		return fmt.Errorf("marshal_new_props -> %w", err)
+	}
+
+	_, err = s.PlayerRepo.PlayerQueries.UpsertOwnedProps(ctx, newPropMapBytes)
+	if err != nil {
+		return fmt.Errorf("update_player_inventory_props -> %w", err)
+	}
+
+	return nil
 }
 
 func (s *Player) calcNUpdateEnergy(

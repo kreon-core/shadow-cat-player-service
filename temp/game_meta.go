@@ -12,6 +12,7 @@ const (
 	BasicEnergy = 30
 
 	EnergyRegenInterval = 15 * time.Minute
+	LevelUpExpNeeded    = 100
 )
 
 type Reward struct {

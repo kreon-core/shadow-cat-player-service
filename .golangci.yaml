@@ -153,6 +153,8 @@ linters:
               desc: Use log/slog instead, see https://go.dev/blog/slog
 
   exclusions:
+    paths:
+      - temp/.*
     rules:
       - text: "should have a package comment"
         linters: [revive]

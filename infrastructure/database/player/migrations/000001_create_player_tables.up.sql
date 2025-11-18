@@ -112,3 +112,20 @@ CREATE TABLE daily_shop(
 
     UNIQUE(player_id, item, day_start_at)
 );
+
+CREATE TABLE battle_history(
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    player_id UUID NOT NULL REFERENCES player(id) ON UPDATE CASCADE ON DELETE CASCADE,
+
+    game_mode INT NOT NULL,
+    tower_id INT,
+    floor INT,
+    map_id INT,
+    completed_at TIMESTAMPTZ,
+    time_survived INT NOT NULL,
+    monster_kills INT NOT NULL,
+    total_damage_dealt INT NOT NULL,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

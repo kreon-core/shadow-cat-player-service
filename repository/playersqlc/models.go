@@ -8,6 +8,21 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type BattleHistory struct {
+	ID               pgtype.UUID        `db:"id" json:"id"`
+	PlayerID         pgtype.UUID        `db:"player_id" json:"player_id"`
+	GameMode         int32              `db:"game_mode" json:"game_mode"`
+	TowerID          pgtype.Int4        `db:"tower_id" json:"tower_id"`
+	Floor            pgtype.Int4        `db:"floor" json:"floor"`
+	MapID            pgtype.Int4        `db:"map_id" json:"map_id"`
+	CompletedAt      pgtype.Timestamptz `db:"completed_at" json:"completed_at"`
+	TimeSurvived     int32              `db:"time_survived" json:"time_survived"`
+	MonsterKills     int32              `db:"monster_kills" json:"monster_kills"`
+	TotalDamageDealt int32              `db:"total_damage_dealt" json:"total_damage_dealt"`
+	CreatedAt        pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+}
+
 type Chapter struct {
 	PlayerID           pgtype.UUID        `db:"player_id" json:"player_id"`
 	ChapterID          int32              `db:"chapter_id" json:"chapter_id"`

@@ -8,5 +8,5 @@ type PlayerChanges struct {
 	BestMap       *BestMap `json:"best_map,omitempty"`
 	CurrentSkin   *int32   `json:"current_skin,omitempty"`
 	EquippedProps *[]int32 `json:"equipped_props,omitempty"`
-	Props         []Prop   `json:"props,omitempty"`
+	Props         *[]Prop  `json:"props,omitempty"`
 }

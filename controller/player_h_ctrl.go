@@ -320,13 +320,77 @@ func (ctrl *PlayerH) ExchangeGemsForCoins(w http.ResponseWriter, r *http.Request
 	successResponse(w, data)
 }
 
-func (ctrl *PlayerH) StartBattle(w http.ResponseWriter, r *http.Request)   {}
+func (ctrl *PlayerH) StartBattle(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_StartBattle: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
 
-func (ctrl *PlayerH) ResumeBattle(w http.ResponseWriter, r *http.Request)  {}
+	var req request.StartBattle
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_StartBattle: Failed to decode request body")
+		badRequestResponse(w)
+		return
+	}
+	defer func() { _ = r.Body.Close() }()
 
-func (ctrl *PlayerH) BuyBattleLife(w http.ResponseWriter, r *http.Request) {}
+	data, err := ctrl.PlayerSvc.StartBattle(r.Context(), playerID, &req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_StartBattle: Failed to start battle")
+		unspecifiedErrorResponse(w, err)
+		return
+	}
 
-func (ctrl *PlayerH) ExitBattle(w http.ResponseWriter, r *http.Request)    {}
+	successResponse(w, data)
+}
+
+func (ctrl *PlayerH) ResumeBattle(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_ResumeBattle: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
+
+	data, err := ctrl.PlayerSvc.ResumeBattle(r.Context(), playerID)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_ResumeBattle: Failed to resume battle")
+		unspecifiedErrorResponse(w, err)
+		return
+	}
+
+	successResponse(w, data)
+}
+
+func (ctrl *PlayerH) CompleteBattle(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_CompleteBattle: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
+
+	var req request.CompleteBattle
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_CompleteBattle: Failed to decode request body")
+		badRequestResponse(w)
+		return
+	}
+	defer func() { _ = r.Body.Close() }()
+
+	data, err := ctrl.PlayerSvc.CompleteBattle(r.Context(), playerID, &req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_CompleteBattle: Failed to complete battle")
+		unspecifiedErrorResponse(w, err)
+		return
+	}
+
+	successResponse(w, data)
+}
 
 func unauthorizedResponse(w http.ResponseWriter) {
 	resc.JSON(w, http.StatusUnauthorized, &response.Resp{

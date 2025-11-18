@@ -14,6 +14,6 @@ type Player struct {
 }
 
 type BestMap struct {
-	MapID      int32  `json:"map_id"`
-	TimeRecord string `json:"time_record"`
+	MapID      int32 `json:"map_id"`
+	TimeRecord int32 `json:"time_record"`
 }
