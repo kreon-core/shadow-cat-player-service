@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/kreon-core/shadow-cat-common/appc"
 	"github.com/kreon-core/shadow-cat-common/ctxc"
 	"github.com/kreon-core/shadow-cat-common/logc"
@@ -66,7 +67,9 @@ func (ctrl *PlayerH) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer func() { _ = r.Body.Close() }()
-
+	if !validateRequest(w, &req) {
+		return
+	}
 	data, err := ctrl.PlayerSvc.UpdatePlayer(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_Update: Failed to update player")
@@ -111,7 +114,9 @@ func (ctrl *PlayerH) ConsumeEnergy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer func() { _ = r.Body.Close() }()
-
+	if !validateRequest(w, &req) {
+		return
+	}
 	data, err := ctrl.PlayerSvc.ConsumeEnergy(r.Context(), playerID, req.Amount)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_ConsumeEnergy: Failed to consume energy")
@@ -138,7 +143,9 @@ func (ctrl *PlayerH) RechargeEnergy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer func() { _ = r.Body.Close() }()
-
+	if !validateRequest(w, &req) {
+		return
+	}
 	data, err := ctrl.PlayerSvc.RechargeEnergy(r.Context(), playerID, req.Amount)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_RechargeEnergy: Failed to recharge energy")
@@ -183,7 +190,9 @@ func (ctrl *PlayerH) UnlockNewSkins(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer func() { _ = r.Body.Close() }()
-
+	if !validateRequest(w, &req) {
+		return
+	}
 	data, err := ctrl.PlayerSvc.UnlockNewSkin(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_UnlockNewSkin: Failed to unlock new skin")
@@ -210,7 +219,9 @@ func (ctrl *PlayerH) GainNewProps(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer func() { _ = r.Body.Close() }()
-
+	if !validateRequest(w, &req) {
+		return
+	}
 	data, err := ctrl.PlayerSvc.GainProps(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_GainProps: Failed to gain props")
@@ -255,7 +266,9 @@ func (ctrl *PlayerH) UpdateTowerProgress(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	defer func() { _ = r.Body.Close() }()
-
+	if !validateRequest(w, &req) {
+		return
+	}
 	data, err := ctrl.PlayerSvc.UpdateTowerProgress(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_UpdateTowerProgress: Failed to update tower progress")
@@ -300,7 +313,9 @@ func (ctrl *PlayerH) ClaimChapterRewards(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	defer func() { _ = r.Body.Close() }()
-
+	if !validateRequest(w, &req) {
+		return
+	}
 	data, err := ctrl.PlayerSvc.ClaimChapterRewards(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_ClaimChapterRewards: Failed to claim chapter rewards")
@@ -345,7 +360,9 @@ func (ctrl *PlayerH) UnlockDailySignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer func() { _ = r.Body.Close() }()
-
+	if !validateRequest(w, &req) {
+		return
+	}
 	data, err := ctrl.PlayerSvc.UnlockDailySignIn(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_UnlockDailySignIn: Failed to unlock daily sign-in")
@@ -372,7 +389,9 @@ func (ctrl *PlayerH) ClaimDailySignInRewards(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	defer func() { _ = r.Body.Close() }()
-
+	if !validateRequest(w, &req) {
+		return
+	}
 	data, err := ctrl.PlayerSvc.ClaimDailySignInRewards(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_ClaimDailySignRewards: Failed to claim daily sign-in rewards")
@@ -417,7 +436,9 @@ func (ctrl *PlayerH) UpdateDailyTaskProgress(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	defer func() { _ = r.Body.Close() }()
-
+	if !validateRequest(w, &req) {
+		return
+	}
 	data, err := ctrl.PlayerSvc.UpdateDailyTaskProgress(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_UpdateDailyTaskProgress: Failed to update daily task progress")
@@ -444,7 +465,9 @@ func (ctrl *PlayerH) ClaimDailyTaskRewards(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	defer func() { _ = r.Body.Close() }()
-
+	if !validateRequest(w, &req) {
+		return
+	}
 	data, err := ctrl.PlayerSvc.ClaimDailyTask(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_ClaimDailyTaskRewards: Failed to claim daily task rewards")
@@ -471,7 +494,9 @@ func (ctrl *PlayerH) ExchangeGemsForCoins(w http.ResponseWriter, r *http.Request
 		return
 	}
 	defer func() { _ = r.Body.Close() }()
-
+	if !validateRequest(w, &req) {
+		return
+	}
 	data, err := ctrl.PlayerSvc.ExchangeGemsForCoins(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_ExchangeGemsForCoins: Failed to exchange gems for coins")
@@ -498,7 +523,9 @@ func (ctrl *PlayerH) StartBattle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer func() { _ = r.Body.Close() }()
-
+	if !validateRequest(w, &req) {
+		return
+	}
 	data, err := ctrl.PlayerSvc.StartBattle(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_StartBattle: Failed to start battle")
@@ -543,7 +570,9 @@ func (ctrl *PlayerH) CompleteBattle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer func() { _ = r.Body.Close() }()
-
+	if !validateRequest(w, &req) {
+		return
+	}
 	data, err := ctrl.PlayerSvc.CompleteBattle(r.Context(), playerID, &req)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_CompleteBattle: Failed to complete battle")
@@ -570,6 +599,9 @@ func (ctrl *PlayerH) ExitBattle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer func() { _ = r.Body.Close() }()
+	if !validateRequest(w, &req) {
+		return
+	}
 
 	err = ctrl.PlayerSvc.ExitBattle(r.Context(), playerID, &req)
 	if err != nil {
@@ -608,4 +640,15 @@ func successResponse(w http.ResponseWriter, data any) {
 		ReturnMessage: appc.Message(appc.Success),
 		Data:          data,
 	})
+}
+
+func validateRequest(w http.ResponseWriter, req any) bool {
+	validate := validator.New()
+	err := validate.Struct(req)
+	if err != nil {
+		logc.Error().Err(err).Msg("validateRequest: Request validation failed")
+		badRequestResponse(w)
+		return false
+	}
+	return true
 }
