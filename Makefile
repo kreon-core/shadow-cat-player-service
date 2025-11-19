@@ -39,7 +39,7 @@ format:
 	golines -w -m 120 .
 
 .PHONY: build
-build: generate
+build:
 	go build -o build/app .
 
 .PHONY: dev
