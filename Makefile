@@ -59,7 +59,7 @@ clean:
 
 DB = scs_player
 DB_AUTH = postgres:password
-DB_ADDR = localhost:5432
+DB_ADDR = 10.176.112.178:5432
 DB_DSN = postgres://$(DB_AUTH)@$(DB_ADDR)/$(DB)?sslmode=disable
 
 .PHONY: migrate-player-create
