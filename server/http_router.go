@@ -32,6 +32,7 @@ func LoadRoutes(container *Container) func(r chi.Router) {
 			r.Post("/claim-daily-sign-in-rewards", container.PlayerHCtrl.ClaimDailySignInRewards)
 
 			r.Get("/daily-tasks-progress", container.PlayerHCtrl.GetDailyTaskProgress)
+			r.Put("/daily-tasks-progress", container.PlayerHCtrl.UpdateDailyTaskProgress)
 			r.Post("/claim-daily-tasks-rewards", container.PlayerHCtrl.ClaimDailyTaskRewards)
 
 			r.Post("/exchange-currency", container.PlayerHCtrl.ExchangeGemsForCoins)

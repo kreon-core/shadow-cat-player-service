@@ -28,6 +28,7 @@ type Querier interface {
 	GetPlayerEnergyByID(ctx context.Context, id pgtype.UUID) (GetPlayerEnergyByIDRow, error)
 	GetTowerProgressByPlayerID(ctx context.Context, playerID pgtype.UUID) ([]GetTowerProgressByPlayerIDRow, error)
 	GetTowerProgressByPlayerIDAndTowerID(ctx context.Context, arg GetTowerProgressByPlayerIDAndTowerIDParams) (GetTowerProgressByPlayerIDAndTowerIDRow, error)
+	IncreaseProgressForDailyTaskBatch(ctx context.Context, dollar_1 []byte) ([]IncreaseProgressForDailyTaskBatchRow, error)
 	InitDailySignIn(ctx context.Context, arg InitDailySignInParams) (InitDailySignInRow, error)
 	InsertOwnedSkins(ctx context.Context, dollar_1 []byte) ([]pgtype.UUID, error)
 	MarkDailySignInDays(ctx context.Context, arg MarkDailySignInDaysParams) (MarkDailySignInDaysRow, error)
@@ -38,7 +39,6 @@ type Querier interface {
 	UpsertBattleHistory(ctx context.Context, arg UpsertBattleHistoryParams) (BattleHistory, error)
 	UpsertChapterProgressOnPlayer(ctx context.Context, arg UpsertChapterProgressOnPlayerParams) (UpsertChapterProgressOnPlayerRow, error)
 	UpsertOwnedProps(ctx context.Context, dollar_1 []byte) ([]pgtype.UUID, error)
-	UpsertProgressForDailyTask(ctx context.Context, arg UpsertProgressForDailyTaskParams) (UpsertProgressForDailyTaskRow, error)
 	UpsertTowerProgressOnPlayer(ctx context.Context, arg UpsertTowerProgressOnPlayerParams) error
 }
 

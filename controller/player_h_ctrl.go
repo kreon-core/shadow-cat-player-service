@@ -401,6 +401,33 @@ func (ctrl *PlayerH) GetDailyTaskProgress(w http.ResponseWriter, r *http.Request
 	successResponse(w, data)
 }
 
+func (ctrl *PlayerH) UpdateDailyTaskProgress(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_UpdateDailyTaskProgress: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
+
+	var req request.UpdateDailyTaskProgress
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_UpdateDailyTaskProgress: Failed to decode request body")
+		badRequestResponse(w)
+		return
+	}
+	defer func() { _ = r.Body.Close() }()
+
+	data, err := ctrl.PlayerSvc.UpdateDailyTaskProgress(r.Context(), playerID, &req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_UpdateDailyTaskProgress: Failed to update daily task progress")
+		unspecifiedErrorResponse(w, err)
+		return
+	}
+
+	successResponse(w, data)
+}
+
 func (ctrl *PlayerH) ClaimDailyTaskRewards(w http.ResponseWriter, r *http.Request) {
 	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
 	if !ok {

@@ -12,14 +12,16 @@ import (
 )
 
 const claimDailyTask = `-- name: ClaimDailyTask :one
-UPDATE daily_task
-SET
+INSERT INTO daily_task (
+    player_id, task_id, day_start_at,
+    claimed, points_earned)
+VALUES ($1, $2, $3, TRUE, $4)
+ON CONFLICT (player_id, task_id, day_start_at)
+DO UPDATE SET
     claimed = TRUE,
-    points_earned = $4,
+    points_earned = EXCLUDED.points_earned,
     updated_at = NOW()
-WHERE player_id = $1
-    AND task_id = $2
-    AND day_start_at = $3
+WHERE daily_task.claimed = FALSE
 RETURNING task_id,
           progress,
           claimed,
@@ -105,50 +107,54 @@ func (q *Queries) GetDailyTasksByPlayerID(ctx context.Context, arg GetDailyTasks
 	return items, nil
 }
 
-const upsertProgressForDailyTask = `-- name: UpsertProgressForDailyTask :one
-INSERT INTO daily_task (
-    player_id,
-    task_id,
-    day_start_at,
-    progress
-) VALUES (
-    $1, $2, $3, $4
-) ON CONFLICT (player_id, task_id, day_start_at) DO UPDATE SET
-    progress = EXCLUDED.progress,
+const increaseProgressForDailyTaskBatch = `-- name: IncreaseProgressForDailyTaskBatch :many
+INSERT INTO daily_task (player_id, task_id, day_start_at, progress)
+SELECT player_id, task_id, day_start_at, progress
+FROM jsonb_to_recordset($1::jsonb) AS t(
+    player_id UUID,
+    task_id INT,
+    day_start_at TIMESTAMPTZ,
+    progress INT
+)
+ON CONFLICT (player_id, task_id, day_start_at)
+DO UPDATE SET
+    progress = daily_task.progress + EXCLUDED.progress,
     updated_at = NOW()
+WHERE daily_task.progress + EXCLUDED.progress >= 0
 RETURNING task_id,
           progress,
           claimed,
           points_earned
 `
 
-type UpsertProgressForDailyTaskParams struct {
-	PlayerID   pgtype.UUID        `db:"player_id" json:"player_id"`
-	TaskID     int32              `db:"task_id" json:"task_id"`
-	DayStartAt pgtype.Timestamptz `db:"day_start_at" json:"day_start_at"`
-	Progress   int32              `db:"progress" json:"progress"`
-}
-
-type UpsertProgressForDailyTaskRow struct {
+type IncreaseProgressForDailyTaskBatchRow struct {
 	TaskID       int32 `db:"task_id" json:"task_id"`
 	Progress     int32 `db:"progress" json:"progress"`
 	Claimed      bool  `db:"claimed" json:"claimed"`
 	PointsEarned int32 `db:"points_earned" json:"points_earned"`
 }
 
-func (q *Queries) UpsertProgressForDailyTask(ctx context.Context, arg UpsertProgressForDailyTaskParams) (UpsertProgressForDailyTaskRow, error) {
-	row := q.db.QueryRow(ctx, upsertProgressForDailyTask,
-		arg.PlayerID,
-		arg.TaskID,
-		arg.DayStartAt,
-		arg.Progress,
-	)
-	var i UpsertProgressForDailyTaskRow
-	err := row.Scan(
-		&i.TaskID,
-		&i.Progress,
-		&i.Claimed,
-		&i.PointsEarned,
-	)
-	return i, err
+func (q *Queries) IncreaseProgressForDailyTaskBatch(ctx context.Context, dollar_1 []byte) ([]IncreaseProgressForDailyTaskBatchRow, error) {
+	rows, err := q.db.Query(ctx, increaseProgressForDailyTaskBatch, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []IncreaseProgressForDailyTaskBatchRow{}
+	for rows.Next() {
+		var i IncreaseProgressForDailyTaskBatchRow
+		if err := rows.Scan(
+			&i.TaskID,
+			&i.Progress,
+			&i.Claimed,
+			&i.PointsEarned,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

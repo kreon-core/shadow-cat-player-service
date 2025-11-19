@@ -396,7 +396,9 @@ func (s *Player) GetChapterProgress(ctx context.Context, playerID string) (*dto.
 		return nil, fmt.Errorf("get_chapter_progress_by_player_id -> %w", err)
 	}
 
-	chapterProgressData := &dto.ChapterProgress{}
+	chapterProgressData := &dto.ChapterProgress{
+		Chapters: []dto.Chapter{},
+	}
 	for _, cp := range chapterProgress {
 		checkedCheckpoints := make(map[int]bool)
 		err := json.Unmarshal(cp.CheckedCheckpoints, &checkedCheckpoints)
@@ -422,6 +424,7 @@ func (s *Player) ClaimChapterRewards(
 		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
 	}
 
+	isNewChapter := false
 	chapter, err := s.PlayerRepo.PlayerQueries.GetChapterProgressByPlayerIDAndChapterID(
 		ctx,
 		playersqlc.GetChapterProgressByPlayerIDAndChapterIDParams{
@@ -430,13 +433,18 @@ func (s *Player) ClaimChapterRewards(
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("get_chapter_progress_by_player_id_and_chapter_id -> %w", err)
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("get_chapter_progress_by_player_id_and_chapter_id -> %w", err)
+		}
+		isNewChapter = true
 	}
 
 	checkedCheckpoints := make(map[int32]bool)
-	err = json.Unmarshal(chapter.CheckedCheckpoints, &checkedCheckpoints)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshal_checked_checkpoints -> %w", err)
+	if !isNewChapter {
+		err = json.Unmarshal(chapter.CheckedCheckpoints, &checkedCheckpoints)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshal_checked_checkpoints -> %w", err)
+		}
 	}
 
 	if v, ok := checkedCheckpoints[req.Checkpoint]; ok && v {
@@ -708,6 +716,7 @@ func (s *Player) GetDailyTaskProgress(ctx context.Context, playerID string) (*dt
 
 	dailyTaskProgressData := &dto.DailyTaskProgress{
 		TotalPoints: 0,
+		Tasks:       []dto.DailyTask{},
 	}
 	for _, dtp := range dailyTaskProgress {
 		dailyTaskProgressData.Tasks = append(dailyTaskProgressData.Tasks, dto.DailyTask{
@@ -720,6 +729,66 @@ func (s *Player) GetDailyTaskProgress(ctx context.Context, playerID string) (*dt
 	}
 
 	return dailyTaskProgressData, nil
+}
+
+func (s *Player) UpdateDailyTaskProgress(
+	ctx context.Context,
+	playerID string,
+	req *request.UpdateDailyTaskProgress,
+) (*dto.DailyTaskProgress, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	dayStartAt := helper.DayStartAt(time.Now())
+
+	batchParams := []struct {
+		PlayerID   pgtype.UUID        `json:"player_id"`
+		TaskID     int32              `json:"task_id"`
+		DayStartAt pgtype.Timestamptz `json:"day_start_at"`
+		Progress   int32              `json:"progress"`
+	}{}
+	for _, taskChange := range req.TaskChanges {
+		batchParams = append(batchParams, struct {
+			PlayerID   pgtype.UUID        `json:"player_id"`
+			TaskID     int32              `json:"task_id"`
+			DayStartAt pgtype.Timestamptz `json:"day_start_at"`
+			Progress   int32              `json:"progress"`
+		}{
+			PlayerID: id,
+			TaskID:   taskChange.TaskID,
+			DayStartAt: pgtype.Timestamptz{
+				Time:  dayStartAt,
+				Valid: true,
+			},
+			Progress: taskChange.Progress,
+		})
+	}
+
+	batchParamsBytes, err := json.Marshal(batchParams)
+	if err != nil {
+		return nil, fmt.Errorf("marshal_batch_params -> %w", err)
+	}
+
+	result, err := s.PlayerRepo.PlayerQueries.IncreaseProgressForDailyTaskBatch(
+		ctx, batchParamsBytes)
+	if err != nil {
+		return nil, fmt.Errorf("update_daily_task_progress -> %w", err)
+	}
+
+	changedResult := &dto.DailyTaskProgress{
+		Tasks: []dto.DailyTask{},
+	}
+	for _, r := range result {
+		changedResult.Tasks = append(changedResult.Tasks, dto.DailyTask{
+			TaskID:       r.TaskID,
+			Progress:     r.Progress,
+			Claimed:      r.Claimed,
+			PointsEarned: r.PointsEarned,
+		})
+	}
+	return changedResult, nil
 }
 
 func (s *Player) ClaimDailyTask(
@@ -747,6 +816,9 @@ func (s *Player) ClaimDailyTask(
 		},
 	)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errors.New("daily_task_not_found_or_already_claimed")
+		}
 		return nil, fmt.Errorf("claim_daily_task -> %w", err)
 	}
 
