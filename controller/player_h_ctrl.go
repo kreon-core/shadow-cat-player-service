@@ -194,6 +194,33 @@ func (ctrl *PlayerH) UnlockNewSkins(w http.ResponseWriter, r *http.Request) {
 	successResponse(w, data)
 }
 
+func (ctrl *PlayerH) GainNewProps(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_GainProps: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
+
+	var req request.GainProps
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_GainProps: Failed to decode request body")
+		badRequestResponse(w)
+		return
+	}
+	defer func() { _ = r.Body.Close() }()
+
+	data, err := ctrl.PlayerSvc.GainProps(r.Context(), playerID, &req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_GainProps: Failed to gain props")
+		unspecifiedErrorResponse(w, err)
+		return
+	}
+
+	successResponse(w, data)
+}
+
 func (ctrl *PlayerH) GetTowerProgress(w http.ResponseWriter, r *http.Request) {
 	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
 	if !ok {
@@ -205,6 +232,33 @@ func (ctrl *PlayerH) GetTowerProgress(w http.ResponseWriter, r *http.Request) {
 	data, err := ctrl.PlayerSvc.GetTowerProgress(r.Context(), playerID)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_GetTowerProgress: Failed to get player tower progress")
+		unspecifiedErrorResponse(w, err)
+		return
+	}
+
+	successResponse(w, data)
+}
+
+func (ctrl *PlayerH) UpdateTowerProgress(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_UpdateTowerProgress: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
+
+	var req request.UpdateTowerProgress
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_UpdateTowerProgress: Failed to decode request body")
+		badRequestResponse(w)
+		return
+	}
+	defer func() { _ = r.Body.Close() }()
+
+	data, err := ctrl.PlayerSvc.UpdateTowerProgress(r.Context(), playerID, &req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_UpdateTowerProgress: Failed to update tower progress")
 		unspecifiedErrorResponse(w, err)
 		return
 	}

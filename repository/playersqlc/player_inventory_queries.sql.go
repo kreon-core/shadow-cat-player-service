@@ -13,20 +13,27 @@ import (
 
 const getInventoryByPlayerID = `-- name: GetInventoryByPlayerID :one
 SELECT
-    COALESCE(to_json(array_agg(skin.config_skin_id) FILTER (WHERE skin.id IS NOT NULL)), '[]') AS owned_skins,
-    COALESCE(to_json(array_agg(
-        jsonb_build_object(
-            'prop_id', prop.id,
-            'config_prop_id', prop.config_prop_id,
-            'level', prop.level,
-            'quantity', prop.quantity
-        )
-    ) FILTER (WHERE prop.id IS NOT NULL)), '[]') AS owned_props
+    COALESCE(to_json(s.owned_skins), '[]') AS owned_skins,
+    COALESCE(to_json(p.owned_props), '[]') AS owned_props
 FROM player
-LEFT JOIN skin ON player.id = skin.player_id
-LEFT JOIN prop ON player.id = prop.player_id
+LEFT JOIN (
+    SELECT player_id, array_agg(config_skin_id) AS owned_skins
+    FROM skin
+    GROUP BY player_id
+) s ON player.id = s.player_id
+LEFT JOIN (
+    SELECT player_id, array_agg(
+        jsonb_build_object(
+            'prop_id', id,
+            'config_prop_id', config_prop_id,
+            'level', level,
+            'quantity', quantity
+        )
+    ) AS owned_props
+    FROM prop
+    GROUP BY player_id
+) p ON player.id = p.player_id
 WHERE player.id = $1
-GROUP BY player.id
 `
 
 type GetInventoryByPlayerIDRow struct {

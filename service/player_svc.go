@@ -299,6 +299,29 @@ func (s *Player) UnlockNewSkin(
 	return s.GetInventory(ctx, playerID)
 }
 
+func (s *Player) GainProps(ctx context.Context, playerID string, req *request.GainProps) (*dto.PlayerInventory, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	newProps := []dto.Prop{}
+	for _, p := range req.Props {
+		newProps = append(newProps, dto.Prop{
+			ConfigPropID: p.ConfigPropID,
+			Level:        p.Level,
+			Quantity:     p.Quantity,
+		})
+	}
+
+	err = s.updatePropsInventory(ctx, id, newProps)
+	if err != nil {
+		return nil, fmt.Errorf("update_props_inventory -> %w", err)
+	}
+
+	return s.GetInventory(ctx, playerID)
+}
+
 func (s *Player) GetTowerProgress(ctx context.Context, playerID string) (*dto.TowerProgress, error) {
 	id, err := dbc.ParseUUID(playerID)
 	if err != nil {
@@ -310,16 +333,56 @@ func (s *Player) GetTowerProgress(ctx context.Context, playerID string) (*dto.To
 		return nil, fmt.Errorf("get_tower_progress_by_player_id -> %w", err)
 	}
 
-	towerProgressData := &dto.TowerProgress{}
+	towerProgressData := &dto.TowerProgress{
+		PlayedTower: []dto.Tower{},
+	}
 	for _, tp := range towerProgress {
-		towerProgressData.Tower = append(towerProgressData.Tower, dto.Tower{
-			TowerID:      int(tp.TowerID),
-			Ticket:       int(tp.Ticket),
-			HighestFloor: int(tp.HighestFloor),
+		towerProgressData.PlayedTower = append(towerProgressData.PlayedTower, dto.Tower{
+			TowerID:      tp.TowerID,
+			Ticket:       tp.Ticket,
+			HighestFloor: tp.HighestFloor,
 		})
 	}
 
 	return towerProgressData, nil
+}
+
+func (s *Player) UpdateTowerProgress(
+	ctx context.Context,
+	playerID string,
+	req *request.UpdateTowerProgress,
+) (*dto.Tower, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	updateParams := playersqlc.UpsertTowerProgressOnPlayerParams{
+		PlayerID:     id,
+		TowerID:      req.TowerID,
+		HighestFloor: req.HighestFloor,
+	}
+	err = s.PlayerRepo.PlayerQueries.UpsertTowerProgressOnPlayer(ctx, updateParams)
+	if err != nil {
+		return nil, fmt.Errorf("upsert_tower_progress_on_player -> %w", err)
+	}
+
+	tower, err := s.PlayerRepo.PlayerQueries.GetTowerProgressByPlayerIDAndTowerID(
+		ctx,
+		playersqlc.GetTowerProgressByPlayerIDAndTowerIDParams{
+			PlayerID: id,
+			TowerID:  req.TowerID,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get_tower_progress_by_player_id_and_tower_id -> %w", err)
+	}
+
+	return &dto.Tower{
+		TowerID:      tower.TowerID,
+		Ticket:       tower.Ticket,
+		HighestFloor: tower.HighestFloor,
+	}, nil
 }
 
 func (s *Player) GetChapterProgress(ctx context.Context, playerID string) (*dto.ChapterProgress, error) {
