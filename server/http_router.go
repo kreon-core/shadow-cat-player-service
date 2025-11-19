@@ -14,7 +14,11 @@ func LoadRoutes(container *Container) func(r chi.Router) {
 			r.Put("/", container.PlayerHCtrl.Update)
 
 			r.Get("/energy", container.PlayerHCtrl.GetEnergy)
+			r.Post("/consume-energy", container.PlayerHCtrl.ConsumeEnergy)
+			r.Post("/recharge-energy", container.PlayerHCtrl.RechargeEnergy)
+
 			r.Get("/inventory", container.PlayerHCtrl.GetInventory)
+			r.Post("/unlock-new-skins", container.PlayerHCtrl.UnlockNewSkins)
 
 			r.Get("/tower-progress", container.PlayerHCtrl.GetTowerProgress)
 

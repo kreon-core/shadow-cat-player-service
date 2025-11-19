@@ -95,6 +95,60 @@ func (ctrl *PlayerH) GetEnergy(w http.ResponseWriter, r *http.Request) {
 	successResponse(w, data)
 }
 
+func (ctrl *PlayerH) ConsumeEnergy(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_ConsumeEnergy: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
+
+	var req request.ChangeEnergy
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_ConsumeEnergy: Failed to decode request body")
+		badRequestResponse(w)
+		return
+	}
+	defer func() { _ = r.Body.Close() }()
+
+	data, err := ctrl.PlayerSvc.ConsumeEnergy(r.Context(), playerID, req.Amount)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_ConsumeEnergy: Failed to consume energy")
+		unspecifiedErrorResponse(w, err)
+		return
+	}
+
+	successResponse(w, data)
+}
+
+func (ctrl *PlayerH) RechargeEnergy(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_RechargeEnergy: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
+
+	var req request.ChangeEnergy
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_RechargeEnergy: Failed to decode request body")
+		badRequestResponse(w)
+		return
+	}
+	defer func() { _ = r.Body.Close() }()
+
+	data, err := ctrl.PlayerSvc.RechargeEnergy(r.Context(), playerID, req.Amount)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_RechargeEnergy: Failed to recharge energy")
+		unspecifiedErrorResponse(w, err)
+		return
+	}
+
+	successResponse(w, data)
+}
+
 func (ctrl *PlayerH) GetInventory(w http.ResponseWriter, r *http.Request) {
 	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
 	if !ok {
@@ -106,6 +160,33 @@ func (ctrl *PlayerH) GetInventory(w http.ResponseWriter, r *http.Request) {
 	data, err := ctrl.PlayerSvc.GetInventory(r.Context(), playerID)
 	if err != nil {
 		logc.Error().Err(err).Msg("PlayerH_GetInventory: Failed to get player inventory")
+		unspecifiedErrorResponse(w, err)
+		return
+	}
+
+	successResponse(w, data)
+}
+
+func (ctrl *PlayerH) UnlockNewSkins(w http.ResponseWriter, r *http.Request) {
+	playerID, ok := ctxc.GetFromContext[string](r.Context(), helper.PlayerIDContextKey)
+	if !ok {
+		logc.Error().Msg("PlayerH_UnlockNewSkin: Unable to get player ID from context")
+		unauthorizedResponse(w)
+		return
+	}
+
+	var req request.UnlockNewSkin
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_UnlockNewSkin: Failed to decode request body")
+		badRequestResponse(w)
+		return
+	}
+	defer func() { _ = r.Body.Close() }()
+
+	data, err := ctrl.PlayerSvc.UnlockNewSkin(r.Context(), playerID, &req)
+	if err != nil {
+		logc.Error().Err(err).Msg("PlayerH_UnlockNewSkin: Failed to unlock new skin")
 		unspecifiedErrorResponse(w, err)
 		return
 	}

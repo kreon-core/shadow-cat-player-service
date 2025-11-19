@@ -111,11 +111,113 @@ func (s *Player) GetEnergy(ctx context.Context, playerID string) (*dto.PlayerEne
 
 	nextEnergyAtUnix := int64(-1)
 	if nextEnergyAt.Valid {
-		nextEnergyAtUnix = nextEnergyAt.Time.Unix()
+		nextEnergyAtUnix = nextEnergyAt.Time.UnixMilli()
 	}
 	return &dto.PlayerEnergy{
-		CurrentEnergy: int(curEnergy),
-		MaxEnergy:     int(maxEnergy),
+		CurrentEnergy: curEnergy,
+		MaxEnergy:     maxEnergy,
+		NextEnergyAt:  nextEnergyAtUnix,
+	}, nil
+}
+
+func (s *Player) ConsumeEnergy(ctx context.Context, playerID string, amount int32) (*dto.PlayerEnergy, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	// TODO: Begin transaction?
+
+	playerEnergy, err := s.PlayerRepo.PlayerQueries.GetPlayerEnergyByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get_player_energy_by_id -> %w", err)
+	}
+
+	maxEnergy := playerEnergy.MaxEnergy
+	curEnergy, nextEnergyAt, err := s.calcNUpdateEnergy(ctx, id, &playerEnergy)
+	if err != nil {
+		return nil, fmt.Errorf("calc_n_update_energy -> %w", err)
+	}
+
+	if curEnergy < amount {
+		return nil, errors.New("not enough energy to consume")
+	}
+
+	curEnergy -= amount
+	if curEnergy < maxEnergy && !nextEnergyAt.Valid {
+		nextEnergyAt = pgtype.Timestamptz{
+			Time:  time.Now().Add(temp.EnergyRegenInterval),
+			Valid: true,
+		}
+	}
+
+	_, err = s.PlayerRepo.PlayerQueries.UpdatePlayerEnergy(ctx, playersqlc.UpdatePlayerEnergyParams{
+		ID:            id,
+		CurrentEnergy: curEnergy,
+		NextEnergyAt:  nextEnergyAt,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("update_player_energy -> %w", err)
+	}
+
+	// TODO: End transaction
+
+	nextEnergyAtUnix := int64(-1)
+	if nextEnergyAt.Valid {
+		nextEnergyAtUnix = nextEnergyAt.Time.UnixMilli()
+	}
+	return &dto.PlayerEnergy{
+		CurrentEnergy: curEnergy,
+		MaxEnergy:     maxEnergy,
+		NextEnergyAt:  nextEnergyAtUnix,
+	}, nil
+}
+
+func (s *Player) RechargeEnergy(ctx context.Context, playerID string, amount int32) (*dto.PlayerEnergy, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	// TODO: Begin transaction?
+
+	playerEnergy, err := s.PlayerRepo.PlayerQueries.GetPlayerEnergyByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("get_player_energy_by_id -> %w", err)
+	}
+
+	maxEnergy := playerEnergy.MaxEnergy
+	curEnergy, nextEnergyAt, err := s.calcNUpdateEnergy(ctx, id, &playerEnergy)
+	if err != nil {
+		return nil, fmt.Errorf("calc_n_update_energy -> %w", err)
+	}
+
+	curEnergy += amount
+	if curEnergy >= maxEnergy {
+		nextEnergyAt = pgtype.Timestamptz{
+			Time:  time.Time{},
+			Valid: false,
+		}
+	}
+
+	_, err = s.PlayerRepo.PlayerQueries.UpdatePlayerEnergy(ctx, playersqlc.UpdatePlayerEnergyParams{
+		ID:            id,
+		CurrentEnergy: curEnergy,
+		NextEnergyAt:  nextEnergyAt,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("update_player_energy -> %w", err)
+	}
+
+	// TODO: End transaction
+
+	nextEnergyAtUnix := int64(-1)
+	if nextEnergyAt.Valid {
+		nextEnergyAtUnix = nextEnergyAt.Time.UnixMilli()
+	}
+	return &dto.PlayerEnergy{
+		CurrentEnergy: curEnergy,
+		MaxEnergy:     maxEnergy,
 		NextEnergyAt:  nextEnergyAtUnix,
 	}, nil
 }
@@ -157,6 +259,44 @@ func (s *Player) GetInventory(ctx context.Context, playerID string) (*dto.Player
 		Skins: skins,
 		Props: props,
 	}, nil
+}
+
+func (s *Player) UnlockNewSkin(
+	ctx context.Context,
+	playerID string,
+	req *request.UnlockNewSkin,
+) (*dto.PlayerInventory, error) {
+	id, err := dbc.ParseUUID(playerID)
+	if err != nil {
+		return nil, fmt.Errorf("parse_uuid_string -> %w", err)
+	}
+
+	newSkins := []struct {
+		PlayerID     pgtype.UUID `json:"player_id"`
+		ConfigSkinID int32       `json:"config_skin_id"`
+	}{}
+
+	for _, skinID := range req.SkinIDs {
+		newSkins = append(newSkins, struct {
+			PlayerID     pgtype.UUID `json:"player_id"`
+			ConfigSkinID int32       `json:"config_skin_id"`
+		}{
+			PlayerID:     id,
+			ConfigSkinID: skinID,
+		})
+	}
+
+	newSkinsBytes, err := json.Marshal(newSkins)
+	if err != nil {
+		return nil, fmt.Errorf("marshal_new_skins -> %w", err)
+	}
+
+	_, err = s.PlayerRepo.PlayerQueries.InsertOwnedSkins(ctx, newSkinsBytes)
+	if err != nil {
+		return nil, fmt.Errorf("insert_owned_skins -> %w", err)
+	}
+
+	return s.GetInventory(ctx, playerID)
 }
 
 func (s *Player) GetTowerProgress(ctx context.Context, playerID string) (*dto.TowerProgress, error) {
@@ -373,6 +513,10 @@ func (s *Player) UnlockDailySignIn(
 		return nil, fmt.Errorf("unmarshal_claimed_days -> %w", err)
 	}
 
+	if _, ok := claimedDays[req.DayNo]; ok {
+		return nil, errors.New("daily_sign_in_day_already_unlocked")
+	}
+
 	claimedDays[req.DayNo] = false
 	claimedDaysBytes, err := json.Marshal(claimedDays)
 	if err != nil {
@@ -435,6 +579,14 @@ func (s *Player) ClaimDailySignInRewards(ctx context.Context,
 	err = json.Unmarshal(getDailySignInByIDRow.ClaimedDays, &claimedDays)
 	if err != nil {
 		return nil, fmt.Errorf("unmarshal_claimed_days -> %w", err)
+	}
+
+	v, ok := claimedDays[req.DayNo]
+	if !ok {
+		return nil, errors.New("day_not_unlocked_yet")
+	}
+	if v {
+		return nil, errors.New("daily_sign_in_reward_already_claimed")
 	}
 
 	claimedDays[req.DayNo] = true
