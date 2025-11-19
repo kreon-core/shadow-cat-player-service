@@ -1,6 +1,6 @@
 CREATE TABLE player (
     id UUID PRIMARY KEY,
-    level INT NOT NULL DEFAULT 0,
+    level INT NOT NULL DEFAULT 1,
     exp INT NOT NULL DEFAULT 0,
     coins INT NOT NULL DEFAULT 0,
     gems INT NOT NULL DEFAULT 0,
@@ -123,9 +123,9 @@ CREATE TABLE battle_history(
     map_id INT,
     completed_at TIMESTAMPTZ,
     exited_at TIMESTAMPTZ,
-    time_survived INT NOT NULL,
-    monster_kills INT NOT NULL,
-    total_damage_dealt INT NOT NULL,
+    time_survived INT NOT NULL DEFAULT 0,
+    monster_kills INT NOT NULL DEFAULT 0,
+    total_damage_dealt INT NOT NULL DEFAULT 0,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
