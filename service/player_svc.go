@@ -132,27 +132,25 @@ func (s *Player) GetInventory(ctx context.Context, playerID string) (*dto.Player
 	}
 
 	var skins []int
-	switch v := playerInventory.OwnedSkins.(type) {
-	case []int64:
-		for _, s := range v {
-			skins = append(skins, int(s))
+	{
+		raw, err := json.Marshal(playerInventory.OwnedSkins)
+		if err != nil {
+			return nil, fmt.Errorf("marshal_OwnedSkins -> %w", err)
 		}
-	case nil:
-		skins = []int{}
-	default:
-		return nil, fmt.Errorf("unexpected type for OwnedSkins: %T", v)
+		if err := json.Unmarshal(raw, &skins); err != nil {
+			return nil, fmt.Errorf("unmarshal_OwnedSkins -> %w", err)
+		}
 	}
 
 	var props []dto.Prop
-	switch v := playerInventory.OwnedProps.(type) {
-	case []byte:
-		if err := json.Unmarshal(v, &props); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal props: %w", err)
+	{
+		raw, err := json.Marshal(playerInventory.OwnedProps)
+		if err != nil {
+			return nil, fmt.Errorf("marshal_OwnedProps -> %w", err)
 		}
-	case nil:
-		props = []dto.Prop{}
-	default:
-		return nil, fmt.Errorf("unexpected type for OwnedProps: %T", v)
+		if err := json.Unmarshal(raw, &props); err != nil {
+			return nil, fmt.Errorf("unmarshal_OwnedProps -> %w", err)
+		}
 	}
 
 	return &dto.PlayerInventory{

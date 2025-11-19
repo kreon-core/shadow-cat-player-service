@@ -1,26 +1,19 @@
 -- name: GetInventoryByPlayerID :one
 SELECT
-    array_agg(skin.id) AS owned_skins,
-    array_agg(
-        json_build_object(
-            'prop_id',
-            prop.id,
-            'config_prop_id',
-            prop.config_prop_id,
-            'level',
-            prop.level,
-            'quantity',
-            prop.quantity
+    COALESCE(to_json(array_agg(skin.config_skin_id) FILTER (WHERE skin.id IS NOT NULL)), '[]') AS owned_skins,
+    COALESCE(to_json(array_agg(
+        jsonb_build_object(
+            'prop_id', prop.id,
+            'config_prop_id', prop.config_prop_id,
+            'level', prop.level,
+            'quantity', prop.quantity
         )
-    ) AS owned_props
-FROM
-    player
-    INNER JOIN skin ON player.id = skin.player_id
-    INNER JOIN prop ON player.id = prop.player_id
-WHERE
-    player.id = $1
-GROUP BY
-    player.id;
+    ) FILTER (WHERE prop.id IS NOT NULL)), '[]') AS owned_props
+FROM player
+LEFT JOIN skin ON player.id = skin.player_id
+LEFT JOIN prop ON player.id = prop.player_id
+WHERE player.id = $1
+GROUP BY player.id;
 
 -- name: InsertOwnedSkins :many
 INSERT INTO
