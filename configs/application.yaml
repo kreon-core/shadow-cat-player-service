@@ -4,7 +4,7 @@ http:
 
 databases:
   player:
-    dsn: "postgres://postgres:password@10.176.112.178:5432/scs_player?sslmode=disable&connect_timeout=5"
+    dsn: "postgres://postgres:password@localhost:5432/scs_player?sslmode=disable&connect_timeout=5"
 
 externals:
   auth-client:
